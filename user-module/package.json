@@ -8,7 +8,7 @@
     "lint": "eslint . --fix"
   },
   "engines": {
-    "node": "12.0.0"
+    "node": "12.13.1"
   },
   "devDependencies": {
     "@babel/core": "7.7.7",
