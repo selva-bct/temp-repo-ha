@@ -1,4 +1,4 @@
-import { defaultMessage, defaultStatusCode } from './../constant/constant'
+import { defaultMessage, defaultStatusCode } from './../utils/constant'
 
 let instance
 

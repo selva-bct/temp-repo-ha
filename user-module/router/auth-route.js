@@ -7,7 +7,7 @@ const authController = new AuthController()
 authRouter
   // .post('/', authController.authenticate)
   .post('/signup', authController.register.bind(authController))
-//     .post('/changePassword', authController.changePassword)
+  .post('/changePassword', authController.changePassword)
 //     .get('/validateToken', authController.validateToken)
 //     .post('/firstTimeChangePassword', authController.firstTimeChangePassword)
 //     // .post('/confirmUser', authController.adminConfirmSignup)

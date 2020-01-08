@@ -5,10 +5,10 @@ import AWS from 'aws-sdk'
 // internal package
 import { logger } from './../config/logger'
 import { responseService } from './../service'
-import { cognitoUserCreation, defaultStatusCode } from './../constant/constant'
+import { cognitoUserCreation, defaultStatusCode, defaultMessage, changePassword } from './../utils/constant'
 
 class AuthController {
-  constructor () {
+  constructor() {
     const arg = cognito
     AWS.config.update({
       accessKeyId: arg.accessKeyId,
@@ -22,11 +22,11 @@ class AuthController {
     })
   }
 
-  authenticate () {
+  authenticate() {
 
   }
 
-  adminCreateUser (poolData) {
+  adminCreateUser(poolData) {
     return new Promise((resolve, reject) => {
       logger.info('Calling cognito api for creating user')
       this.cognitoClient.adminCreateUser(poolData, (error, data) => {
@@ -38,7 +38,7 @@ class AuthController {
     })
   }
 
-  async register (req, res, next) {
+  async register(req, res, next) {
     try {
       logger.info('Into User registration')
       const { body: { name, email, password, phone } } = req
@@ -71,15 +71,36 @@ class AuthController {
     }
   }
 
-  changePassword () {
-    console.log('change password')
+  async changePassword(req, res) {
+    try {
+      console.log('change password')
+      const { password, newPassword } = req.body
+      const { authorization } = req.headers
+      const options = {
+        AccessToken: authorization,
+        PreviousPassword: password,
+        ProposedPassword: newPassword
+      }
+      const result = await new Promise((resolve, reject) => {
+        this.cognitoClient.changePassword(options, function (err, data) {
+          if (err) return reject(err)
+          resolve(data)
+        })
+      })
+      logger.info(changePassword.SUCCESS)
+      return responseService.onSuccess(res, changePassword.SUCCESS)
+
+    } catch (error) {
+      logger.error(error, changePassword.ERROR)
+      return responseService.onError(res, changePassword.ERROR, error)
+    }
   }
 
-  validateToken () {
+  validateToken() {
 
   }
 
-  firstTimeChangePassword () {
+  firstTimeChangePassword() {
 
   }
 }
