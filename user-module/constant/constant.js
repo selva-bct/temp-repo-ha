@@ -33,9 +33,12 @@ export const cognitoUserAuthentication = {
   }
 }
 
-// module.exports = {
-//   defaultMessage,
-//   defaultStatusCode,
-//   cognitoUserCreation,
-//   cognitoUserAuthentication
-// }
+export const forgotPasswordRequest = {
+  SUCCESS: 'Forgot Password Request was successful. Check your email for reset link',
+  ERROR: 'Error while changing password...'
+}
+
+export const changePasswordRequest = {
+  SUCCESS: 'Change Password Request was successful.',
+  ERROR: 'Error while changing password...'
+}
