@@ -1,6 +1,6 @@
 export const defaultStatusCode = {
   NOT_AUTHORIZED: 401,
-  ERROR: 500,
+  INTERNAL_SERVER_ERROR: 500,
   SUCCESS: 200,
   ACCESS_FORBIDDEN: 403,
   VALIDATION_ERROR: 400,
@@ -11,17 +11,21 @@ export const defaultStatusCode = {
 
 export const defaultMessage = {
   NOT_AUTHORIZED: 'User not authorized',
-  ERROR: 'Oops uncaught exception',
+  ERROR: 'Oops something went wrong',
   SUCCESS: 'Service request was successful',
   ACCESS_FORBIDDEN: 'Not authorized to view this particular content',
-  VALIDATION_ERROR: 'Error Validating data',
+  VALIDATION_ERROR: 'Error validating data',
   NOT_FOUND: 'Resource not found',
-  CONFLICT: 'Resource already exist'
+  CONFLICT: 'Resource already exist',
+  ADMIN_NO_SRP_AUTH: 'ADMIN_NO_SRP_AUTH',
+  NOT_AUTHORIZED_EXCEPTION: 'NotAuthorizedException',
+  USERNAME_EXIST_EXCEPTION: 'UsernameExistsException',
+  TOKEN_VALIDATION_ERROR: 'Error while validating token'
 }
 
 export const cognitoUserCreation = {
-  SUCCESS: 'Successfully created user in cognito...',
-  ERROR: 'Failed to create user in cognito'
+  SUCCESS: 'User created successfully',
+  ERROR: 'Failed to create user'
 }
 
 export const cognitoUserAuthentication = {
@@ -33,9 +37,12 @@ export const cognitoUserAuthentication = {
   }
 }
 
-// module.exports = {
-//   defaultMessage,
-//   defaultStatusCode,
-//   cognitoUserCreation,
-//   cognitoUserAuthentication
-// }
+export const resetPasswordRequest = {
+  SUCCESS: 'Check your email to reset the password',
+  ERROR: 'Error while request for forgot password'
+}
+
+export const changePasswordRequest = {
+  SUCCESS: 'Change Password Request was successful',
+  ERROR: 'Error while changing password'
+}
