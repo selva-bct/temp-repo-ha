@@ -1,8 +1,8 @@
 const express = require('express')
 
-const authRouter = require('./auth-route')
+const userRoute = require('./user-route')
 const mainRouter = express.Router()
 
-mainRouter.use('/auth', authRouter)
+mainRouter.use('/users', userRoute)
 
 export default mainRouter

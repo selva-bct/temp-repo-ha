@@ -1,5 +1,4 @@
 const config = {
-  name: 'selva',
   cognito: {
     userPoolId: '',
     appClientId: '',

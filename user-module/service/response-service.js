@@ -19,14 +19,14 @@ class ResponseService {
   }
 
   notAuthorized (res, message = defaultMessage.NOT_AUTHORIZED) {
-    return res.json({
+    return res.status(defaultStatusCode.NOT_AUTHORIZED).send({
       message,
       status: defaultStatusCode.NOT_AUTHORIZED
     })
   }
 
   accessForbidden (res, message = defaultMessage.ACCESS_FORBIDDEN, data) {
-    return res.json({
+    return res.status(defaultStatusCode.ACCESS_FORBIDDEN).send({
       message,
       data,
       status: defaultStatusCode.ACCESS_FORBIDDEN
@@ -34,29 +34,30 @@ class ResponseService {
   }
 
   validationError (res, message = defaultMessage.VALIDATION_ERROR, data) {
-    return res.json({
+    return res.status(defaultStatusCode.VALIDATION_ERROR).send({
       message,
       data,
       status: defaultStatusCode.VALIDATION_ERROR
     })
   }
 
-  onError (res, message = defaultMessage.ERROR, error) {
-    return res.json({
+  onError (res, message = defaultMessage.INTERNAL_SERVER_ERROR, error) {
+    return res.status(error.status || defaultStatusCode.ERROR).send({
       message,
-      status: error.status || defaultStatusCode.ERROR
+      status: error.status || defaultStatusCode.ERROR,
+      error
     })
   }
 
   notFound (res, message = defaultMessage.NOT_FOUND, error) {
-    return res.json({
+    return res.status(error.status || defaultStatusCode.NOT_FOUND).send({
       message,
       status: defaultStatusCode.NOT_FOUND
     })
   }
 
   conflict (res, message = defaultMessage.CONFLICT, error) {
-    return res.json({
+    return res.status(error.status || defaultStatusCode.CONFLICT).send({
       message: error.message || message,
       status: defaultStatusCode.CONFLICT
     })
