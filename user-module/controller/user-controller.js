@@ -71,6 +71,8 @@ class UserController {
       const params = {
         UserPoolId: cognito.userPoolId,
         Username: name,
+        ForceAliasCreation: true,
+        MessageAction: 'SUPPRESS',
         DesiredDeliveryMediums: ['EMAIL'],
         TemporaryPassword: password,
         UserAttributes: [
@@ -83,6 +85,10 @@ class UserController {
       const userData = await promisify(this.cognitoClient.adminCreateUser.bind(this.cognitoClient, params))()
       logger.info(cognitoUserCreation.SUCCESS)
       await this.adminSetUserPassword(passwordParams)
+      logger.info('Admin setting user email verified as true')
+      const param = { UserPoolId: cognito.userPoolId, Username: name, UserAttributes: [{ Name: 'email_verified', Value: 'true' }] }
+      await promisify(this.cognitoClient.adminUpdateUserAttributes.bind(this.cognitoClient, param))()
+      logger.info('Admin setting user email verified as true was successfull')
       responseService.onSuccess(res, cognitoUserCreation.SUCCESS, userData, defaultStatusCode.RESOURCE_CREATED)
     } catch (error) {
       logger.error(error, cognitoUserCreation.ERROR)
@@ -135,15 +141,8 @@ class UserController {
     return new Promise(async (resolve, reject) => {
       try {
         logger.info('Admin set password for user')
-        const { password, username, isPermanent } = userInfo
-        const params = {
-          Password: password,
-          Permanent: isPermanent,
-          Username: username,
-          UserPoolId: cognito.userPoolId
-        }
-        const response = await promisify(this.cognitoClient.adminSetUserPassword.bind(this.cognitoClient, params))()
-        logger.info(resetPasswordRequest.SUCCESS)
+        const response = await promisify(this.cognitoClient.adminSetUserPassword.bind(this.cognitoClient, userInfo))()
+        logger.info(logger.info('Admin setting user password was successful'))
         resolve(response)
       } catch (error) {
         logger.error(error, resetPasswordRequest.ERROR)
