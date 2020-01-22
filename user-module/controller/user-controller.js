@@ -137,6 +137,26 @@ class UserController {
     }
   }
 
+  async resetPassword (req, res) {
+    try {
+      logger.info('Requesting for reset of Password')
+      const { username, password, confirmationCode } = req.body
+      const { appClientId } = cognito
+      const params = {
+        Username: username,
+        Password: password,
+        ConfirmationCode: confirmationCode,
+        ClientId: appClientId
+      }
+      const data = await promisify(this.cognitoClient.confirmForgotPassword.bind(this.cognitoClient, params))()
+      logger.info(changePasswordRequest.SUCCESS)
+      responseService.onSuccess(res, changePasswordRequest.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, changePasswordRequest.ERROR)
+      responseService.onError(res, cognitoUserCreation.ERROR, error)
+    }
+  }
+
   adminSetUserPassword (userInfo) {
     return new Promise(async (resolve, reject) => {
       try {
