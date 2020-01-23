@@ -4,8 +4,8 @@ import Address from './address'
 import Contact from './contact'
 
 export {
-    User,
-    Role,
-    Address,
-    Contact
+  User,
+  Role,
+  Address,
+  Contact
 }

@@ -11,4 +11,8 @@ userRouter
   .post('/forgot-password', userController.forgotPassword.bind(userController))
   .post('/reset-password', userController.resetPassword.bind(userController))
 
+  .get('/getUserList', userController.getUserList.bind(userController))
+  .get('/getRoleList', userController.getRoleList.bind(userController))
+  .post('/getUser', userController.getUser.bind(userController))
+
 module.exports = userRouter

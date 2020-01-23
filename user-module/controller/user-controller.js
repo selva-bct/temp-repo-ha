@@ -5,7 +5,7 @@ import { promisify } from 'util'
 
 // internal package
 import { logger } from '../config/logger'
-import { responseService } from '../service'
+import { responseService, userService } from '../service'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -189,6 +189,43 @@ class UserController {
     } catch (error) {
       logger.error(error, defaultMessage.TOKEN_VALIDATION_ERROR)
       next(error)
+    }
+  }
+
+  async getUserList (req, res) {
+    try {
+      logger.info('Getting user list')
+      const data = await userService.getUserList()
+      logger.info(defaultMessage.SUCCESS)
+      responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async getUser (req, res) {
+    try {
+      logger.info('Getting user by Email')
+      const { username } = req.body
+      const data = await userService.getUser(username)
+      logger.info(defaultMessage.SUCCESS)
+      responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async getRoleList (req, res) {
+    try {
+      logger.info('Getting user list')
+      const data = await userService.getRoleList()
+      logger.info(defaultMessage.SUCCESS)
+      responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
     }
   }
 }
