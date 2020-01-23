@@ -35,5 +35,5 @@ export const Address = sequelize.define('Address', {
     timestamps: true,
     underscored: true,
     paranoid: true, 
-    tableName: 'gep_user_address'
+    tableName: 'address'
 })

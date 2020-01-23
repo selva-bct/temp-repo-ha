@@ -14,12 +14,14 @@ export const Role = sequelize.define('Role', {
 }, {
     timestamps: true,
     underscored: true,
-    paranoid: true, // remove this if the entities are gonna be hard deleted
-    tableName: 'gep_user_role'
-    // indexes: [
-    //     {
-    //         unique: true,
-    //         fields: ['role']
-    //     }
-    // ]
+    paranoid: true, 
+    tableName: 'role',
+    indexes: [
+        {
+            unique: true,
+            fields: ['role']
+        }
+    ]
 })
+
+console.log( "Role :: ", Role)

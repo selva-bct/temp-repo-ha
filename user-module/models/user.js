@@ -1,13 +1,14 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
-import {Role} from './role'
-import {Address} from './address'
+import { Role } from './role'
+import { Address } from './address'
+// import {Contact} from './contact'
 
 export const User = sequelize.define('User', {
     userId: {
         type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true        
+        autoIncrement: true
     },
     username: {
         type: Sequelize.STRING
@@ -25,7 +26,7 @@ export const User = sequelize.define('User', {
         }
     },
     // need to get clarification
-    status:  {
+    status: {
         type: Sequelize.STRING,
         defaultValue: 'abc'
     },
@@ -44,45 +45,36 @@ export const User = sequelize.define('User', {
     timestamps: true,
     underscored: true,
     paranoid: true, // remove this if the entities are gonna be hard deleted
-    tableName: 'gep_user',
+    tableName: 'user',
     indexes: [
         {
-          unique: true,
-          fields: ['email', 'username']
+            unique: true,
+            fields: ['email', 'username']
         }
     ]
 })
 
-User.belongsToMany(Role,{through: 'gep_user_permission',foreignKey: 'userId',otherKey: 'roleId'})
-User.belongsToMany(Address,{through: 'gep_user_address_relation'})
+User.belongsToMany(Role, { through: 'user_permission' })
+Role.belongsToMany(User, { through: 'user_permission' })
 
+User.hasMany(Address)
+User.hasMany(Contact)
 
 //To insert table test data
-sequelize.sync().then(() => Role.create({
-    role:"Patient"
-  }))
-  .then(() => User.create({
-    firstName: 'ssssasdsfsg',
-    lastName: 'sdfgss',
-    email: 'ssdssdfgdsad@mddkfss.df',
-    token: 'sdsweasd',
-    username: 'wssdasdsa',
-    Role:1
-  },
-  {
-    include: [
-        Role
-    ]
-  }))
-  
-  .then(() => Address.create({
-    addressNickname:'abc',
-    addressLine1:'xyz',
-    city:'Chennai',
-    State:'TN',
-    zip:'1234'
+sequelize.sync()
+    .then(async () => {
+        const newUser = await User.create({
+            firstName: 'qsadsrsadssdw',
+            lastName: 'qsrssw',
+            email: 'qrssssw@ssqw.com',
+            token: 'qrssw',
+            username: 'qssasadassw'
+        })
+        const fetchedRole = await Role.findAll({
+            where: {
+                role: 'Patient'
+            }
+        })
+        await newUser.addRoles(fetchedRole)
+    })
 
-  }))
-  .then(jane => {
-    console.log(jane.toJSON());
-  });
