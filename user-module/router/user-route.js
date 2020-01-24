@@ -11,8 +11,14 @@ userRouter
   .post('/forgot-password', userController.forgotPassword.bind(userController))
   .post('/reset-password', userController.resetPassword.bind(userController))
 
-  .get('/getUserList', userController.getUserList.bind(userController))
-  .get('/getRoleList', userController.getRoleList.bind(userController))
   .post('/getUser', userController.getUser.bind(userController))
+  .put('/updateUser', userController.updateUser.bind(userController))
+  .get('/getUserList', userController.getUserList.bind(userController))
+
+  .post('/addRole', userController.addRole.bind(userController))
+  .put('/updateRole', userController.updateRole.bind(userController))
+  .get('/getRole/:id', userController.getRole.bind(userController))
+  .delete('/deleteRole/:id', userController.deleteRole.bind(userController))
+  .get('/getRoleList', userController.getRoleList.bind(userController))
 
 module.exports = userRouter

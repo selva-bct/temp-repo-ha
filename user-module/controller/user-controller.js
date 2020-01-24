@@ -192,6 +192,38 @@ class UserController {
     }
   }
 
+  async getUser (req, res) {
+    try {
+      logger.info('Getting user by Email')
+      const { username } = req.body
+      const data = await userService.getUser(username)
+      logger.info(defaultMessage.SUCCESS)
+      responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async updateUser (req, res) {
+    try {
+      logger.info('Updating user')
+      const user = req.body
+      const userInfo = await userService.getUser(user.username)
+      if (userInfo !== null) {
+        const data = await userService.updateUser(user)
+        logger.info(defaultMessage.SUCCESS)
+        responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+      } else {
+        logger.error(defaultMessage.ERROR)
+        responseService.onError(res, defaultMessage.ERROR)
+      }
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
   async getUserList (req, res) {
     try {
       logger.info('Getting user list')
@@ -204,11 +236,47 @@ class UserController {
     }
   }
 
-  async getUser (req, res) {
+  async addRole (req, res) {
     try {
-      logger.info('Getting user by Email')
-      const { username } = req.body
-      const data = await userService.getUser(username)
+      logger.info('Adding new role')
+      if (req.body.role !== null && req.body.role !== '') {
+        const data = await userService.addRole(req.body)
+        logger.info(defaultMessage.SUCCESS)
+        responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+      } else {
+        logger.error(defaultMessage.ERROR)
+        responseService.onError(res, defaultMessage.ERROR)
+      }
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async updateRole (req, res) {
+    try {
+      logger.info('Updating role')
+      const role = req.body
+      const roleInfo = await userService.getRole(role.roleId)
+      if (roleInfo !== null) {
+        await userService.updateRole(role)
+        logger.info(defaultMessage.SUCCESS)
+        responseService.onSuccess(res, defaultMessage.SUCCESS, defaultStatusCode.SUCCESS)
+      } else {
+        logger.error(defaultMessage.NOT_FOUND)
+        responseService.onError(res, defaultMessage.NOT_FOUND)
+      }
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async getRole (req, res) {
+    try {
+      logger.info('Getting role by Id')
+      const { id } = req.params
+      const data = await userService.getRole(id)
       logger.info(defaultMessage.SUCCESS)
       responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
     } catch (error) {
@@ -223,6 +291,25 @@ class UserController {
       const data = await userService.getRoleList()
       logger.info(defaultMessage.SUCCESS)
       responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+    } catch (error) {
+      logger.error(error, defaultMessage.ERROR)
+      responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+  async deleteRole (req, res) {
+    try {
+      logger.info('Delete role')
+      const { id } = req.params
+      const role = await userService.getRole(id)
+      if (role !== null) {
+        const data = await userService.deleteRole(id)
+        logger.info(defaultMessage.SUCCESS)
+        responseService.onSuccess(res, defaultMessage.SUCCESS, data, defaultStatusCode.SUCCESS)
+      } else {
+        logger.error(defaultMessage.NOT_FOUND)
+        responseService.onError(res, defaultMessage.NOT_FOUND)
+      }
     } catch (error) {
       logger.error(error, defaultMessage.ERROR)
       responseService.onError(res, defaultMessage.ERROR, error)
