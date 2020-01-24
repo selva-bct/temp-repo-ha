@@ -15,6 +15,15 @@ class UserService {
     }
   }
 
+
+  async createUser (user) {
+    try {
+      return await connection.models.User.create(user)
+    } catch (error) {
+      logger.error('Error while updating user ', error)
+    }
+  }
+
   async updateUser (user) {
     try {
       return await connection.models.User.update(user, { where: { userId: Number(user.userId) } })
@@ -48,6 +57,14 @@ class UserService {
   async getRole (roleId) {
     try {
       return await connection.models.Role.findOne({ where: { roleId: roleId } })
+    } catch (error) {
+      logger.error('Error while getting role ', error)
+    }
+  }
+
+  async getRoleByRoleName (roleName) {
+    try {
+      return await connection.models.Role.findOne({ where: { role: roleName } })
     } catch (error) {
       logger.error('Error while getting role ', error)
     }

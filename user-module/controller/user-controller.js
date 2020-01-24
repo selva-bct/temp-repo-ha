@@ -2,6 +2,9 @@
 import { cognito } from 'config'
 import AWS from 'aws-sdk'
 import { promisify } from 'util'
+import crypto from 'crypto'
+
+const secret = 'abcdefg';
 
 // internal package
 import { logger } from '../config/logger'
@@ -122,11 +125,16 @@ class UserController {
   async forgotPassword (req, res) {
     try {
       logger.info('Requesting for resetting the password')
-      const { username } = req.body
+      const { email } = req.body
+      if (!email) {
+        return responseService.validationError(res, defaultMessage.validationError, {
+          message: 'Please enter email'
+        })
+      }
       const { appClientId } = cognito
       const params = {
         ClientId: appClientId,
-        Username: username
+        Username: email
       }
       const data = await promisify(this.cognitoClient.forgotPassword.bind(this.cognitoClient, params))()
       logger.info(resetPasswordRequest.SUCCESS)
@@ -140,10 +148,10 @@ class UserController {
   async resetPassword (req, res) {
     try {
       logger.info('Requesting for reset of Password')
-      const { username, password, confirmationCode } = req.body
+      const { email, password, confirmationCode } = req.body
       const { appClientId } = cognito
       const params = {
-        Username: username,
+        Username: email,
         Password: password,
         ConfirmationCode: confirmationCode,
         ClientId: appClientId
@@ -153,7 +161,11 @@ class UserController {
       responseService.onSuccess(res, changePasswordRequest.SUCCESS, data, defaultStatusCode.SUCCESS)
     } catch (error) {
       logger.error(error, changePasswordRequest.ERROR)
-      responseService.onError(res, cognitoUserCreation.ERROR, error)
+      if (error.name === 'ExpiredCodeException') {
+        responseService.onError(res, error.message, error)  
+      } else {
+        responseService.onError(res, cognitoUserCreation.ERROR, error)
+      }
     }
   }
 
@@ -313,6 +325,33 @@ class UserController {
     } catch (error) {
       logger.error(error, defaultMessage.ERROR)
       responseService.onError(res, defaultMessage.ERROR, error)
+    }
+  }
+
+
+  async inviteUser( req, res) {
+    try {
+      logger.info('Into invite user')
+      const { body } = req
+      const hash = crypto.createHmac('sha256', secret)
+                   .update(JSON.stringify(body))
+                   .digest('hex');
+      let user = body
+      user = {
+        ...user,
+        token: hash,
+        status: 'invited',
+
+      }
+      const role = await userService.getRoleByRoleName('Patient')
+      const newUser = await userService.createUser(body)
+      console.log('Email Invite link  ::: ', hash)
+      await newUser.setRoles(role)
+      logger.info('sucessfully created the user')
+      responseService.onSuccess(res, 'user invited successfully')
+    } catch (error) {
+      logger.info('error creating the user', error)
+      responseService.onError(res, 'Error inviting user', error)
     }
   }
 }

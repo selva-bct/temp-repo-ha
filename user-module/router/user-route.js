@@ -1,5 +1,6 @@
 import UserController from '../controller/user-controller'
 import express from 'express'
+import { User } from '../models'
 
 const userRouter = express.Router()
 const userController = new UserController()
@@ -20,5 +21,6 @@ userRouter
   .get('/getRole/:id', userController.getRole.bind(userController))
   .delete('/deleteRole/:id', userController.deleteRole.bind(userController))
   .get('/getRoleList', userController.getRoleList.bind(userController))
+  .post('/invite', userController.inviteUser.bind(UserController))
 
 module.exports = userRouter
