@@ -17,7 +17,7 @@ class UserService {
 
   async updateUser (user) {
     try {
-      return await connection.models.User.update(user, { where: { userId: Number(user.userId) } })
+      return await connection.models.User.update(user, { where: { username: (user.username) } })
     } catch (error) {
       logger.error('Error while updating user ', error)
     }
@@ -38,7 +38,6 @@ class UserService {
 
   async addRole (role) {
     try {
-      console.log(role, '----role info')
       return await connection.models.Role.create(role)
     } catch (error) {
       logger.error('Error while adding role ', error)

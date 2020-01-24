@@ -5,7 +5,7 @@ import { promisify } from 'util'
 
 // internal package
 import { logger } from '../config/logger'
-import { responseService, userService } from '../service'
+import { responseService, userService, cognotiService } from '../service'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -36,16 +36,8 @@ class UserController {
       if (!(username || password)) {
         return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const params = {
-        UserPoolId: cognito.userPoolId,
-        AuthFlow: defaultMessage.ADMIN_NO_SRP_AUTH,
-        ClientId: cognito.appClientId,
-        AuthParameters: {
-          USERNAME: username,
-          PASSWORD: password
-        }
-      }
-      const result = await promisify(this.cognitoClient.adminInitiateAuth.bind(this.cognitoClient, params))()
+      const result = await cognotiService.login(username, password)
+      cognotiService.resetFailAttempts(username)
       logger.info(defaultMessage.SUCCESS)
       return responseService.onSuccess(res, defaultMessage.SUCCESS, result)
     } catch (error) {
@@ -88,6 +80,7 @@ class UserController {
       logger.info('Admin setting user email verified as true')
       const param = { UserPoolId: cognito.userPoolId, Username: name, UserAttributes: [{ Name: 'email_verified', Value: 'true' }] }
       await promisify(this.cognitoClient.adminUpdateUserAttributes.bind(this.cognitoClient, param))()
+
       logger.info('Admin setting user email verified as true was successfull')
       responseService.onSuccess(res, cognitoUserCreation.SUCCESS, userData, defaultStatusCode.RESOURCE_CREATED)
     } catch (error) {
