@@ -36,10 +36,10 @@ class UserController {
       if (!(username || password)) {
         return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const result = await cognotiService.login(username, password)
+      const data = await cognotiService.login(username, password)
       cognotiService.resetFailAttempts(username)
       logger.info(defaultMessage.SUCCESS)
-      return responseService.onSuccess(res, defaultMessage.SUCCESS, result)
+      return responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
       if (error.name === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
@@ -116,14 +116,9 @@ class UserController {
     try {
       logger.info('Requesting for resetting the password')
       const { username } = req.body
-      const { appClientId } = cognito
-      const params = {
-        ClientId: appClientId,
-        Username: username
-      }
-      const data = await promisify(this.cognitoClient.forgotPassword.bind(this.cognitoClient, params))()
+      cognotiService.forgotPassword(username)
       logger.info(resetPasswordRequest.SUCCESS)
-      return responseService.onSuccess(res, resetPasswordRequest.SUCCESS, data)
+      return responseService.onSuccess(res, resetPasswordRequest.SUCCESS, defaultStatusCode.SUCCESS)
     } catch (error) {
       logger.error(error, resetPasswordRequest.ERROR)
       return responseService.onError(res, resetPasswordRequest.ERROR, error)
@@ -134,16 +129,9 @@ class UserController {
     try {
       logger.info('Requesting for reset of Password')
       const { username, password, confirmationCode } = req.body
-      const { appClientId } = cognito
-      const params = {
-        Username: username,
-        Password: password,
-        ConfirmationCode: confirmationCode,
-        ClientId: appClientId
-      }
-      const data = await promisify(this.cognitoClient.confirmForgotPassword.bind(this.cognitoClient, params))()
+      cognotiService.resetPassword(username, password, confirmationCode)
       logger.info(changePasswordRequest.SUCCESS)
-      responseService.onSuccess(res, changePasswordRequest.SUCCESS, data, defaultStatusCode.SUCCESS)
+      responseService.onSuccess(res, changePasswordRequest.SUCCESS, defaultStatusCode.SUCCESS)
     } catch (error) {
       logger.error(error, changePasswordRequest.ERROR)
       responseService.onError(res, cognitoUserCreation.ERROR, error)
