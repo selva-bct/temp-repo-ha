@@ -91,7 +91,6 @@ class CognitoService {
       return await promisify(this.cognitoClient.adminInitiateAuth.bind(this.cognitoClient, params))()
     } catch (error) {
       logger.error('Error while login user')
-      this.updateFailAttempts(username)
       throw error
     }
   }
