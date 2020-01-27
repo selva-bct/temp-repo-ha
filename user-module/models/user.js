@@ -28,7 +28,7 @@ export const User = sequelize.define('User', {
   // need to get clarification
   status: {
     type: Sequelize.STRING,
-    defaultValue: 'abc'
+    defaultValue: 'invited'
   },
   lastLogin: {
     type: Sequelize.DATE,
@@ -38,8 +38,8 @@ export const User = sequelize.define('User', {
     type: Sequelize.INTEGER,
     defaultValue: 0
   },
-  token: {
-    type: Sequelize.STRING
+  inviteToken: {
+    type: Sequelize.TEXT
   }
 }, {
   timestamps: true,

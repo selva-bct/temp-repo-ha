@@ -23,3 +23,23 @@ export const Role = sequelize.define('Role', {
     }
   ]
 })
+
+
+sequelize.sync().then(async () => {
+  const a = await Role.findOne({})
+  console.log(a)
+})
+
+/*
+  Creating default roles
+*/
+// sequelize.sync().then(async ()=> {
+//   // default roles are created
+//   await Role.create({
+//     role: 'patient'
+//   })
+
+//   await Role.create({
+//     role: 'provider'
+//   })
+// })

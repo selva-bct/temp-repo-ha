@@ -3,12 +3,12 @@ import { cognito } from 'config'
 import AWS from 'aws-sdk'
 import { promisify } from 'util'
 import crypto from 'crypto'
-
+import { pick } from 'lodash';
 const secret = 'abcdefg';
 
 // internal package
 import { logger } from '../config/logger'
-import { responseService, userService } from '../service'
+import { responseService, userService, roleService, addressService } from '../service'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -16,7 +16,7 @@ import {
   changePasswordRequest,
   resetPasswordRequest
 } from '../constant/constant'
-
+  
 class UserController {
   constructor () {
     const arg = cognito
@@ -54,9 +54,9 @@ class UserController {
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
       if (error.name === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
-        return responseService.notAuthorized(res, defaultMessage.NOT_AUTHORIZED, error)
+        return responseService.notAuthorized(res, error.message, error)
       } else {
-        return responseService.onError(res, defaultMessage.INTERNAL_SERVER_ERROR, error)
+        return responseService.onError(res, error.message, error)
       }
     }
   }
@@ -336,22 +336,51 @@ class UserController {
       const hash = crypto.createHmac('sha256', secret)
                    .update(JSON.stringify(body))
                    .digest('hex');
+      // Todo:: validate the req body
       let user = body
       user = {
         ...user,
-        token: hash,
-        status: 'invited',
-
+        inviteToken: hash,
+        status: 'invited'
       }
+      // save the address
+      // assign the newly created address to the user
+      const newAddress = await addressService.createAddress(body)
       const role = await userService.getRoleByRoleName('Patient')
-      const newUser = await userService.createUser(body)
+      const newUser = await userService.createUser(user)
       console.log('Email Invite link  ::: ', hash)
       await newUser.setRoles(role)
+      await newUser.setAddresses(newAddress)
       logger.info('sucessfully created the user')
       responseService.onSuccess(res, 'user invited successfully')
     } catch (error) {
       logger.info('error creating the user', error)
-      responseService.onError(res, 'Error inviting user', error)
+      responseService.onError(res, error.message, error)
+    }
+  }
+
+
+  async getUserByToken (req, res) {
+    try {
+      const { inviteToken } = req.params
+      // checking if the token received belongs to a valid user
+      const user = await userService.getUserByInviteToken(inviteToken)
+      let error;
+      if (!user) {  
+        error = new Error('INVALID_TOKEN')
+      } else if (user.status !== 'invited') {
+        error = new Error('USER_ALREADY_REGITERED')
+      }
+      // TODO: please add a check for the invite token expiry
+      // checking if the validation above was cleared
+      if (error) {
+        return responseService.validationError(res, error.message, error)
+      }
+      logger.info('Successfully fetched user detail by invite token')
+      responseService.onSuccess(res, null, user)
+    } catch (error) {
+      logger.error('Error while fetching user by invite token ',error)
+      responseService.onError(res, error.message, error)
     }
   }
 }

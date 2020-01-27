@@ -21,6 +21,10 @@ userRouter
   .get('/getRole/:id', userController.getRole.bind(userController))
   .delete('/deleteRole/:id', userController.deleteRole.bind(userController))
   .get('/getRoleList', userController.getRoleList.bind(userController))
+  
+  // invite user
   .post('/invite', userController.inviteUser.bind(UserController))
+  .get('/:id')
+  .get('/token/:inviteToken', userController.getUserByToken.bind(userController))
 
 module.exports = userRouter

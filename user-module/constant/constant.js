@@ -48,3 +48,7 @@ export const changePasswordRequest = {
   SUCCESS: 'Change Password Request was successful',
   ERROR: 'Error while changing password'
 }
+
+export const SUCCESS_RESPONSE_MESSAGE = {
+  FETCH_USER_BY_TOKEN_SUCCESS: 'Successfully fetch user by the token'
+}

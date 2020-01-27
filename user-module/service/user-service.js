@@ -1,6 +1,7 @@
 import connection from '../config/db-conection'
 import { logger } from '../config/logger'
 import { Role } from './../models/role'
+import { Address } from '../models/address'
 
 class UserService {
   async getUserList () {
@@ -12,15 +13,6 @@ class UserService {
       })
     } catch (error) {
       logger.error('Error while getting user list', error)
-    }
-  }
-
-
-  async createUser (user) {
-    try {
-      return await connection.models.User.create(user)
-    } catch (error) {
-      logger.error('Error while updating user ', error)
     }
   }
 
@@ -62,14 +54,6 @@ class UserService {
     }
   }
 
-  async getRoleByRoleName (roleName) {
-    try {
-      return await connection.models.Role.findOne({ where: { role: roleName } })
-    } catch (error) {
-      logger.error('Error while getting role ', error)
-    }
-  }
-
   async updateRole (role) {
     try {
       return await connection.models.Role.update(role, { where: { roleId: Number(role.roleId) } })
@@ -93,6 +77,36 @@ class UserService {
       logger.error('Error while getting role list', error)
     }
   }
+
+  // need to verify all the above methods
+  getRoleByRoleName (roleName) {
+    return connection.models.Role.findOne({ where: { role: roleName } })
+  }
+
+  getUserByInviteToken (token) {
+    return connection.models.User.findOne({
+      // where: {
+      //   inviteToken: token,
+      //   include: [{
+      //     model: connection.models.Role
+      //   }
+      //   , {
+      //     model: connection.models.Address
+      //   }
+      // ]
+      // }
+      include: [{
+        model: connection.models.Role
+      }, {
+        model: connection.models.Address
+      }]
+    })
+  }
+
+  createUser (user) {
+    return connection.models.User.create(user)
+  }
+
 }
 
 export default new UserService()

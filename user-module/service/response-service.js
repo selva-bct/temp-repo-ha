@@ -3,7 +3,7 @@ import { defaultMessage, defaultStatusCode } from './../constant/constant'
 let instance
 
 class ResponseService {
-  constructor (value) {
+  constructor () {
     if (instance) {
       return instance
     }
