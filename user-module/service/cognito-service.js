@@ -100,7 +100,7 @@ class CognitoService {
     try {
       logger.info('update login failed attempts')
       const userAttempts = await userService.getUser(username)
-      if (!userAttempts) {
+      if (userAttempts) {
         const data = {
           username: username,
           loginAttempts: userAttempts.loginAttempts + 1
@@ -117,7 +117,7 @@ class CognitoService {
     try {
       logger.info('Reset login failed attempts')
       const userAttempts = await userService.getUser(username)
-      if (!userAttempts) {
+      if (userAttempts) {
         const data = {
           username: username,
           loginAttempts: 0

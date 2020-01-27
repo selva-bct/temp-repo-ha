@@ -144,7 +144,7 @@ class UserController {
         return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
       const userInfo = await userService.getUser(user.username)
-      if (!userInfo) {
+      if (userInfo) {
         const data = await userService.updateUser(user)
         logger.info(defaultMessage.SUCCESS)
         responseService.onSuccess(res, defaultMessage.SUCCESS, data)
