@@ -1,6 +1,6 @@
 import connection from '../config/db-conection'
 import { logger } from '../config/logger'
-import { Role } from './../models/role'
+import { Role } from '../models/role'
 
 class UserService {
   async getUserList () {

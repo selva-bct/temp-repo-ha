@@ -42,9 +42,9 @@ class ResponseService {
   }
 
   onError (res, message = defaultMessage.INTERNAL_SERVER_ERROR, error) {
-    return res.status(error.status || defaultStatusCode.ERROR).send({
+    return res.status(error.status || defaultStatusCode.INTERNAL_SERVER_ERROR).send({
       message,
-      status: error.status || defaultStatusCode.ERROR,
+      status: error.status || defaultStatusCode.INTERNAL_SERVER_ERROR,
       error
     })
   }
