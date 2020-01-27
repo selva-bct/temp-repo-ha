@@ -23,6 +23,7 @@ class UserController {
       return responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
+      cognotiService.updateFailAttempts(username)
       if (error.name === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
         return responseService.notAuthorized(res, defaultMessage.NOT_AUTHORIZED, error)
       } else {
