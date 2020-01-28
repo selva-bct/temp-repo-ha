@@ -1,6 +1,16 @@
+import crypto from 'crypto'
+import { pick } from 'lodash'
+import { secret } from 'config'
+
 // internal package
 import { logger } from '../config/logger'
-import { responseService, userService, cognotiService } from '../service'
+import { 
+  ResponseService,
+  UserService,
+  CognitoService,
+  RoleService,
+  AddressService
+} from '../service'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -10,25 +20,32 @@ import {
 } from '../constant/constant'
 
 class UserController {
+  constructor() {
+    this.addressService = new AddressService()
+    this.cognitoService = new CognitoService()
+    this.roleService = new RoleService()
+    this.userService = new UserService()
+    this.responseService = new ResponseService()
+  }
   async authenticate (req, res) {
+    const { username, password } = req.body
     try {
       logger.info('Authenticating user')
-      const { username, password } = req.body
+      
       if (!(username && password)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+        return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const data = await cognotiService.login(username, password)
-      cognotiService.resetFailAttempts(username)
+      const data = await this.cognitoService.login(username, password)
+      await this.cognitoService.resetFailAttempts(username)
       logger.info(defaultMessage.SUCCESS)
-      return responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      return this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
-      cognotiService.updateFailAttempts(username)
-      if (error.name === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
-        return responseService.notAuthorized(res, defaultMessage.NOT_AUTHORIZED, error)
-      } else {
-        return responseService.onError(res, defaultMessage.INTERNAL_SERVER_ERROR, error)
+      await this.cognitoService.updateFailAttempts(username)
+      if (error.code === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
+        return this.responseService.notAuthorized(res, error)
       }
+      return this.responseService.onError(res, error)
     }
   }
 
@@ -37,16 +54,22 @@ class UserController {
       logger.info('User registration')
       const { body: { name, email, password } } = req
       if (!(name && email && password)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+        const error = new Error('MANDATORY_FIELDS_MISSING')
+        return this.responseService.validationError(res, error)
       }
-      const userData = await cognotiService.createUser(name, email, password)
-      responseService.onSuccess(res, cognitoUserCreation.SUCCESS, userData, defaultStatusCode.RESOURCE_CREATED)
+      const userData = await this.cognitoService.createUser(name, email, password)
+      const updatedUser = await this.userService.updateUser({
+        email,
+        status: 'registered',
+        registeredAt: new Date()
+      })
+      this.responseService.onSuccess(res, cognitoUserCreation.SUCCESS, updatedUser, defaultStatusCode.RESOURCE_CREATED)
     } catch (error) {
       logger.error(error, cognitoUserCreation.ERROR)
       if (error.code === defaultMessage.USERNAME_EXIST_EXCEPTION) {
-        responseService.conflict(res, cognitoUserCreation.CONFLICT, error)
+        this.responseService.conflict(res, error)
       } else {
-        responseService.onError(res, cognitoUserCreation.ERROR, error)
+        this.responseService.onError(res, error)
       }
     }
   }
@@ -54,49 +77,66 @@ class UserController {
   async changePassword (req, res) {
     try {
       logger.info('Requesting for change of Password')
-      const { oldPassword, newPassword } = req.body
+      const { oldPassword, password, confirmPassword } = req.body
       const { authorization } = req.headers
-      if (!(oldPassword && newPassword && authorization)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+      if (!(oldPassword && password && authorization)) {
+        const error =  new Error('MANDATORY_FIELDS_MISSING')
+        return this.responseService.validationError(res, error)
       }
-      await cognotiService.changePassword(oldPassword, newPassword, authorization)
+
+      if (password !== confirmPassword) {
+        const error =  new Error('PASSWORD_DO_NOT_MATCH')
+        return this.responseService.validationError(res, error)
+      }
+
+      await this.cognitoService.changePassword(oldPassword, password, authorization)
       logger.info(changePasswordRequest.SUCCESS)
-      responseService.onSuccess(res, changePasswordRequest.SUCCESS)
+      this.responseService.onSuccess(res, changePasswordRequest.SUCCESS)
     } catch (error) {
       logger.error(error, changePasswordRequest.ERROR)
-      responseService.onError(res, cognitoUserCreation.ERROR, error)
+      this.responseService.onError(res, error)
     }
   }
 
   async forgotPassword (req, res) {
     try {
       logger.info('Requesting for resetting the password')
-      const { username } = req.body
-      if (!(username)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+      const { email } = req.body
+      if (!email) {
+        const error = new Error("PROVIDE_EMAIL")
+        return this.responseService.validationError(res, error, {
+          message: [
+            'Please provide email'
+          ]
+        })
       }
-      await cognotiService.forgotPassword(username)
-      logger.info(resetPasswordRequest.SUCCESS)
-      return responseService.onSuccess(res, resetPasswordRequest.SUCCESS)
+      await this.cognitoService.forgotPassword(email)
+      logger.info(forgotPasswordRequest.SUCCESS)
+      return this.responseService.onSuccess(res, forgotPasswordRequest.SUCCESS)
     } catch (error) {
-      logger.error(error, resetPasswordRequest.ERROR)
-      return responseService.onError(res, resetPasswordRequest.ERROR, error)
+      logger.error(error, forgotPasswordRequest.ERROR)
+      return this.responseService.onError(res, error, forgotPasswordRequest.ERROR)
     }
   }
 
   async resetPassword (req, res) {
     try {
       logger.info('Requesting for reset of Password')
-      const { username, password, confirmationCode } = req.body
-      if (!(username && password && confirmationCode)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+      const { email, password, confirmationCode } = req.body
+      if (!(email && password && confirmationCode)) {
+        const error = new Error('MANDATORY_FIELDS_MISSING')
+        return this.responseService.validationError(res, error, {
+          message: [
+            'Please provide mandatory fields like email, password and confirmation code'
+          ]
+        })
       }
-      await cognotiService.resetPassword(username, password, confirmationCode)
-      logger.info(changePasswordRequest.SUCCESS)
-      responseService.onSuccess(res, changePasswordRequest.SUCCESS)
+      await this.cognitoService.resetPassword(email, password, confirmationCode)
+      logger.info('Password resert was successfull')
+      this.responseService.onSuccess(res, 'Password resert was successfull')
     } catch (error) {
-      logger.error(error, changePasswordRequest.ERROR)
-      responseService.onError(res, cognitoUserCreation.ERROR, error)
+      logger.error(error, 'Error while resetting password')
+      this.responseService.onError(res, error, 'Error while resetting password')
     }
   }
 
@@ -105,13 +145,13 @@ class UserController {
       logger.info('Into verifying user...')
       const { authorization } = req.headers
       if (!(authorization)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+        return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const user = await cognotiService.validateToken(authorization)
+      const user = await cognitoService.validateToken(authorization)
       if (!user) {
         const error = new Error(defaultMessage.NOT_AUTHORIZED)
         logger.error(error, defaultMessage.NOT_AUTHORIZED)
-        responseService.NOT_AUTHORIZED(res, defaultMessage.NOT_AUTHORIZED, defaultStatusCode.NOT_AUTHORIZED)
+        this.responseService.NOT_AUTHORIZED(res, defaultMessage.NOT_AUTHORIZED, defaultStatusCode.NOT_AUTHORIZED)
       }
       logger.info('Successfully verified user...')
       next()
@@ -126,14 +166,14 @@ class UserController {
       logger.info('Getting user by Email')
       const { username } = req.body
       if (!(username)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+        return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const data = await userService.getUser(username)
+      const data = await this.userService.getUser(username)
       logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
       logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      this.responseService.onError(res, error)
     }
   }
 
@@ -142,33 +182,90 @@ class UserController {
       logger.info('Updating user')
       const user = req.body
       if (!(user)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+        return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const userInfo = await userService.getUser(user.username)
+      const userInfo = await this.userService.getUser(user.username)
       if (userInfo) {
-        const data = await userService.updateUser(user)
+        const data = await this.userService.updateUser(user)
         logger.info(defaultMessage.SUCCESS)
-        responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+        this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
       } else {
         logger.error(defaultMessage.ERROR)
-        responseService.onError(res, defaultMessage.ERROR)
+        this.responseService.onError(res, defaultMessage.ERROR)
       }
     } catch (error) {
       logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      this.responseService.onError(res, error)
     }
   }
 
   async getUserList (req, res) {
     try {
       logger.info('Getting user list')
-      const data = await userService.getUserList()
+      const data = await this.userService.getUserList()
       logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
       logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      this.responseService.onError(res, error)
+    }
+  }
+
+  async inviteUser( req, res) {
+    try {
+      logger.info('Into invite user')
+      const { body } = req
+      const hash = crypto.createHmac('sha256', secret)
+                   .update(JSON.stringify(body))
+                   .digest('hex');
+      // Todo:: validate the req body
+      let user = body
+      user = {
+        ...user,
+        invitedAt: new Date(),
+        inviteToken: hash,
+        status: 'invited'
+      }
+      // save the address
+      // assign the newly created address to the user
+      const newAddress = await this.addressService.createAddress(body)
+      // read the role type for frontend and validate via enum
+      const role = await this.roleService.getRoleByRoleName('Patient')
+      // Todo: Assign address nick name based on the role assigned
+      const newUser = await this.userService.createUser(user)
+      console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)
+      await newUser.setRoles(role)
+      await newUser.setAddresses(newAddress)
+      // Todo:: need to send email
+      logger.info('sucessfully created the user')
+      this.responseService.onSuccess(res, 'user invited successfully')
+    } catch (error) {
+      logger.info('error creating the user', error)
+      this.responseService.onError(res, error)
+    }
+  }
+  
+  async getUserByToken (req, res) {
+    try {
+      const { inviteToken } = req.params
+      // checking if the token received belongs to a valid user
+      const user = await this.userService.getUserByInviteToken(inviteToken)
+      let error;
+      if (!user) {  
+        error = new Error('INVALID_TOKEN')
+      }
+      // TODO: please add a check for the invite token expiry
+      // checking if the validation above was cleared
+      if (error) {
+        return this.responseService.validationError(res, error)
+      }
+      logger.info('Successfully fetched user detail by invite token')
+      this.responseService.onSuccess(res, null, user)
+    } catch (error) {
+      logger.error('Error while fetching user by invite token ',error)
+      this.responseService.onError(res, error)
     }
   }
 }
+
 module.exports = UserController

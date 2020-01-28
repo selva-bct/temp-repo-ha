@@ -1,9 +1,13 @@
-import responseService from './response-service'
-import userService from './user-service'
-import cognotiService from './cognito-service'
+import {ResponseService} from './response-service'
+import {UserService} from './user-service'
+import {CognitoService} from './cognito-service'
+import {AddressService} from './address-service'
+import {RoleService} from './role-service'
 
 export {
-  responseService,
-  userService,
-  cognotiService
+  ResponseService,
+  UserService,
+  CognitoService,
+  RoleService,
+  AddressService
 }

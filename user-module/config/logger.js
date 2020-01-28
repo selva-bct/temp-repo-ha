@@ -1,7 +1,17 @@
 import bunyan from 'bunyan'
 
 const config = require('config')
-export const logger = bunyan.createLogger({
-  name: 'user-module',
-  streams: config.loggerConfig
-})
+let logger;
+if (process.enc === 'production') {
+  logger = bunyan.createLogger({
+    name: 'user-module',
+    streams: config.loggerConfig
+  })
+} else {
+  logger = console
+}
+
+
+export {
+  logger
+}

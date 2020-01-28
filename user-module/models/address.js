@@ -25,7 +25,7 @@ export const Address = sequelize.define('Address', {
   state: {
     type: Sequelize.STRING
   },
-  zip: {
+  zipCode: {
     type: Sequelize.INTEGER
   },
   country: {

@@ -4,13 +4,13 @@ import AWS from 'aws-sdk'
 import { promisify } from 'util'
 
 import { logger } from '../config/logger'
-import { userService } from '../service'
+import { UserService } from '../service'
 import {
   cognitoUserCreation,
   resetPasswordRequest
 } from '../constant/constant'
 
-class CognitoService {
+export class CognitoService {
   constructor () {
     const arg = cognito
     AWS.config.update({
@@ -23,6 +23,7 @@ class CognitoService {
       apiVersion: arg.apiVersion,
       region: arg.poolRegion
     })
+    this.userService = new UserService()
   }
 
   async createUser (name, email, password) {
@@ -95,38 +96,48 @@ class CognitoService {
     }
   }
 
-  async updateFailAttempts (username) {
-    try {
-      logger.info('update login failed attempts')
-      const userAttempts = await userService.getUser(username)
-      if (userAttempts) {
-        const data = {
-          username: username,
-          loginAttempts: userAttempts.loginAttempts + 1
+  updateFailAttempts (email) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        logger.info('update login failed attempts')
+        let updatedUser
+        const user = await this.userService.getUser(email)
+        if (user) {
+          const data = {
+            email: email,
+            id: user.id,
+            loginAttempts: user.loginAttempts + 1
+          }
+          updatedUser = await this.userService.updateUser(data)
         }
-        userService.updateUser(data)
+        resolve(updatedUser)
+      } catch (error) {
+        logger.error('Error while updating login Failed Attempts')
+        reject(error)
       }
-    } catch (error) {
-      logger.error('Error while updating login Failed Attempts')
-      throw error
-    }
+    })
   }
 
-  async resetFailAttempts (username) {
-    try {
-      logger.info('Reset login failed attempts')
-      const userAttempts = await userService.getUser(username)
-      if (userAttempts) {
-        const data = {
-          username: username,
-          loginAttempts: 0
+  resetFailAttempts (email) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        logger.info('Reset login failed attempts')
+        let updatedUser
+        const user = await this.userService.getUser(email)
+        if (user) {
+          const data = {
+            email,
+            id: user.id,
+            loginAttempts: 0
+          }
+          updatedUser = await this.userService.updateUser(data)
         }
-        userService.updateUser(data)
+        resolve(updatedUser)
+      } catch (error) {
+        logger.error('Error while reseting login Failed Attempts')
+        reject(error)
       }
-    } catch (error) {
-      logger.error('Error while reseting login Failed Attempts')
-      throw error
-    }
+    })
   }
 
   async forgotPassword (username) {
@@ -160,20 +171,23 @@ class CognitoService {
     }
   }
 
-  async changePassword (oldPassword, newPassword, authorization) {
-    try {
-      logger.info('Requesting for change of Password')
-
-      const params = {
-        AccessToken: authorization,
-        PreviousPassword: oldPassword,
-        ProposedPassword: newPassword
+  changePassword (oldPassword, newPassword, authorization) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        logger.info('Requesting for change of Password')
+  
+        const params = {
+          AccessToken: authorization,
+          PreviousPassword: oldPassword,
+          ProposedPassword: newPassword
+        }
+        const response = await promisify(this.cognitoClient.changePassword.bind(this.cognitoClient, params))()
+        resolve(response)
+      } catch (error) {
+        logger.error('Error while changing password')
+        reject(error)
       }
-      return await promisify(this.cognitoClient.changePassword.bind(this.cognitoClient, params))()
-    } catch (error) {
-      logger.error('Error while changing password')
-      throw error
-    }
+    })
   }
 
   async validateToken (authorization) {
@@ -188,5 +202,3 @@ class CognitoService {
     }
   }
 }
-
-export default new CognitoService()

@@ -1,8 +1,8 @@
 export const defaultStatusCode = {
   NOT_AUTHORIZED: 401,
-  INTERNAL_SERVER_ERROR: 500,
   SUCCESS: 200,
-  ERROR: 204,
+  ERROR: 500,
+  NO_CONTENT: 204,
   ACCESS_FORBIDDEN: 403,
   VALIDATION_ERROR: 400,
   NOT_FOUND: 404,
@@ -38,7 +38,7 @@ export const cognitoUserAuthentication = {
   }
 }
 
-export const resetPasswordRequest = {
+export const forgotPasswordRequest = {
   SUCCESS: 'Check your email to reset the password',
   ERROR: 'Error while request for forgot password'
 }

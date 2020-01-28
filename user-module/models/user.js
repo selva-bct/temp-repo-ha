@@ -31,15 +31,21 @@ export const User = sequelize.define('User', {
     defaultValue: 'abc'
   },
   lastLogin: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW
+    type: Sequelize.DATE
   },
   loginAttempts: {
     type: Sequelize.INTEGER,
     defaultValue: 0
   },
-  token: {
+  inviteToken: {
     type: Sequelize.STRING
+  },
+  registeredAt: {
+    type: Sequelize.DATE
+  },
+  invitedAt: {
+    type: Sequelize.DATE,
+    defaultValue: Sequelize.NOW
   }
 }, {
   timestamps: true,

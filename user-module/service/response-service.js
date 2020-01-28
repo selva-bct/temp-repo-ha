@@ -2,7 +2,7 @@ import { defaultMessage, defaultStatusCode } from './../constant/constant'
 
 let instance
 
-class ResponseService {
+export class ResponseService {
   constructor (value) {
     if (instance) {
       return instance
@@ -18,50 +18,42 @@ class ResponseService {
     })
   }
 
-  notAuthorized (res, message = defaultMessage.NOT_AUTHORIZED) {
+  notAuthorized (res, error, message = defaultMessage.NOT_AUTHORIZED) {
     return res.status(defaultStatusCode.NOT_AUTHORIZED).send({
-      message,
-      status: defaultStatusCode.NOT_AUTHORIZED
+      message: error.message || message
     })
   }
 
-  accessForbidden (res, message = defaultMessage.ACCESS_FORBIDDEN, data) {
+  accessForbidden (res, error, message = defaultMessage.ACCESS_FORBIDDEN) {
     return res.status(defaultStatusCode.ACCESS_FORBIDDEN).send({
-      message,
-      data,
-      status: defaultStatusCode.ACCESS_FORBIDDEN
+      message: error.message || message
     })
   }
 
-  validationError (res, message = defaultMessage.VALIDATION_ERROR, data) {
+  validationError (res, error, data, message = defaultMessage.VALIDATION_ERROR) {
     return res.status(defaultStatusCode.VALIDATION_ERROR).send({
-      message,
-      data,
-      status: defaultStatusCode.VALIDATION_ERROR
-    })
-  }
-
-  onError (res, message = defaultMessage.INTERNAL_SERVER_ERROR, error) {
-    return res.status(error.status || defaultStatusCode.INTERNAL_SERVER_ERROR).send({
-      message,
-      status: error.status || defaultStatusCode.INTERNAL_SERVER_ERROR,
-      error
-    })
-  }
-
-  notFound (res, message = defaultMessage.NOT_FOUND, error) {
-    return res.status(error.status || defaultStatusCode.NOT_FOUND).send({
-      message,
-      status: defaultStatusCode.NOT_FOUND
-    })
-  }
-
-  conflict (res, message = defaultMessage.CONFLICT, error) {
-    return res.status(error.status || defaultStatusCode.CONFLICT).send({
       message: error.message || message,
-      status: defaultStatusCode.CONFLICT
+      data
+    })
+  }
+
+  onError (res, error, message = defaultMessage.ERROR) {
+    return res.status(error.statusCode || defaultStatusCode.ERROR).send({
+      message: error.message || message
+    })
+  }
+
+  notFound (res, error, message = defaultMessage.NOT_FOUND) {
+    return res.status(error.statusCode || defaultStatusCode.NOT_FOUND).send({
+      message: error.message || message
+    })
+  }
+
+  conflict (res, error, message = defaultMessage.CONFLICT) {
+    return res.status(error.statusCode || defaultStatusCode.CONFLICT).send({
+      message: error.message || message
     })
   }
 }
 
-export default new ResponseService()
+export default ResponseService
