@@ -12,6 +12,7 @@ export const Role = sequelize.define('Role', {
 
   }
 }, {
+  // schema:'hagep',
   timestamps: true,
   underscored: true,
   paranoid: true,

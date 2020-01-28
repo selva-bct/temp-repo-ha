@@ -16,6 +16,7 @@ export const Contact = sequelize.define('Contact', {
 
   }
 }, {
+  // schema:'hagep',
   timestamps: true,
   underscored: true,
   paranoid: true,

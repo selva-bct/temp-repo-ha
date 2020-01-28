@@ -21,7 +21,8 @@ export const defaultMessage = {
   ADMIN_NO_SRP_AUTH: 'ADMIN_NO_SRP_AUTH',
   NOT_AUTHORIZED_EXCEPTION: 'NotAuthorizedException',
   USERNAME_EXIST_EXCEPTION: 'UsernameExistsException',
-  TOKEN_VALIDATION_ERROR: 'Error while validating token'
+  TOKEN_VALIDATION_ERROR: 'Error while validating token',
+  MANDATORY_FIELDS_MISSING: 'Mandatory fields are missing'
 }
 
 export const cognitoUserCreation = {
@@ -47,3 +48,4 @@ export const changePasswordRequest = {
   SUCCESS: 'Change Password Request was successful',
   ERROR: 'Error while changing password'
 }
+

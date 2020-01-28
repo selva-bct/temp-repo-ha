@@ -77,7 +77,7 @@ export class CognitoService {
     })
   }
 
-  async login (username, password) {
+  async login (email, password) {
     try {
       logger.info('login user')
       const params = {
@@ -85,7 +85,7 @@ export class CognitoService {
         AuthFlow: 'ADMIN_NO_SRP_AUTH',
         ClientId: cognito.appClientId,
         AuthParameters: {
-          USERNAME: username,
+          USERNAME: email,
           PASSWORD: password
         }
       }
@@ -96,57 +96,47 @@ export class CognitoService {
     }
   }
 
-  updateFailAttempts (email) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        logger.info('update login failed attempts')
-        let updatedUser
-        const user = await this.userService.getUser(email)
-        if (user) {
-          const data = {
-            email: email,
-            id: user.id,
-            loginAttempts: user.loginAttempts + 1
-          }
-          updatedUser = await this.userService.updateUser(data)
+  async updateFailAttempts (email) {
+    try {
+      logger.info('update login failed attempts')
+      const user = await this.userService.getUser(email)
+      if (user) {
+        const data = {
+          email,
+          loginAttempts: user.loginAttempts + 1
         }
-        resolve(updatedUser)
-      } catch (error) {
-        logger.error('Error while updating login Failed Attempts')
-        reject(error)
+        await this.userService.updateUser(data)
       }
-    })
+    } catch (error) {
+      logger.error('Error while updating login Failed Attempts')
+      throw error
+    }
   }
 
-  resetFailAttempts (email) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        logger.info('Reset login failed attempts')
-        let updatedUser
-        const user = await this.userService.getUser(email)
-        if (user) {
-          const data = {
-            email,
-            id: user.id,
-            loginAttempts: 0
-          }
-          updatedUser = await this.userService.updateUser(data)
+  async resetFailAttempts (email) {
+    try {
+      logger.info('Reset login failed attempts')
+      const user = await this.userService.getUser(email)
+      if (user) {
+        const data = {
+          email,
+          loginAttempts: 0
         }
-        resolve(updatedUser)
-      } catch (error) {
-        logger.error('Error while reseting login Failed Attempts')
-        reject(error)
+        await this.userService.updateUser(data)
       }
-    })
+    } catch (error) {
+      logger.error('Error while reseting login Failed Attempts')
+      throw error
+    }
   }
 
-  async forgotPassword (username) {
+  async forgotPassword (email) {
     try {
       logger.info('Requesting for resetting the password')
       const { appClientId } = cognito
       const params = {
         ClientId: appClientId,
-        Username: username
+        Username: email
       }
       return await promisify(this.cognitoClient.forgotPassword.bind(this.cognitoClient, params))()
     } catch (error) {
@@ -171,15 +161,14 @@ export class CognitoService {
     }
   }
 
-  changePassword (oldPassword, newPassword, authorization) {
+  changePassword (oldPassword, password, authorization) {
     return new Promise(async (resolve, reject) => {
       try {
         logger.info('Requesting for change of Password')
-  
         const params = {
           AccessToken: authorization,
           PreviousPassword: oldPassword,
-          ProposedPassword: newPassword
+          ProposedPassword: password
         }
         const response = await promisify(this.cognitoClient.changePassword.bind(this.cognitoClient, params))()
         resolve(response)

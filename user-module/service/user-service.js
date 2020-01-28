@@ -1,12 +1,13 @@
 import connection from '../config/db-conection'
 import { logger } from '../config/logger'
 import { Role } from '../models/role'
+import { Address } from '../models/address'
 
 export class UserService {
   constructor() { }
 
-  createUser (user) {
-    return new Promise(async(resolve, reject) => {
+  createUser(user) {
+    return new Promise(async (resolve, reject) => {
       try {
         if (!user) {
           const error = new Error('EMPTY_USER_OBJECT')
@@ -28,7 +29,7 @@ export class UserService {
   }
 
   getUserByEmail(email) {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const user = await connection.models.User.findOne({
           where: {
@@ -46,6 +47,9 @@ export class UserService {
       return await connection.models.User.findAll({
         include: [{
           model: Role
+        },
+        {
+          model: Address
         }]
       })
     } catch (error) {
@@ -54,62 +58,26 @@ export class UserService {
     }
   }
 
-  updateUser(user) {
-    // Todo: nedd to update user by id not by email.
-    // If update by email is needed write a separate email.
-    return new Promise(async (resolve, reject) => {
-      try {
-        const oldUser = await connection.models.User.findOne({ where: { email: user.email }})
-        const data = {
-          ...oldUser,
-          ...user
-        }
-        const updatedUser = await connection.models.User.update(data, { where: { email: user.email } })
-        resolve(updatedUser)
-      } catch (error) {
-        logger.error('Error while updating user ', error)
-        reject(error)
-      }
-    })
+
+  async updateUser(user) {
+    try {
+      return await connection.models.User.update(user, { where: { email: (user.email) } })
+    } catch (error) {
+      logger.error('Error while updating user ', error)
+      throw error
+    }
   }
 
-  async getUser(username) {
+  async getUser(email) {
     try {
       return await connection.models.User.findOne({
-        where: { username: username },
+        where: { email },
         include: [{
           model: Role
         }]
       })
     } catch (error) {
       logger.error('Error while getting user ', error)
-      throw error
-    }
-  }
-
-  async addRole(role) {
-    try {
-      return await connection.models.Role.create(role)
-    } catch (error) {
-      logger.error('Error while adding role ', error)
-      throw error
-    }
-  }
-
-  async getRole(roleId) {
-    try {
-      return await connection.models.Role.findOne({ where: { roleId: roleId } })
-    } catch (error) {
-      logger.error('Error while getting role ', error)
-      throw error
-    }
-  }
-
-  async updateRole(role) {
-    try {
-      return await connection.models.Role.update(role, { where: { roleId: Number(role.roleId) } })
-    } catch (error) {
-      logger.error('Error while updating role ', error)
       throw error
     }
   }
@@ -138,24 +106,6 @@ export class UserService {
         reject(error)
       }
     })
-  }
-
-  async deleteRole(roleId) {
-    try {
-      return await connection.models.Role.destroy({ where: { roleId: Number(roleId) } })
-    } catch (error) {
-      logger.error('Error while deleting role ', error)
-      throw error
-    }
-  }
-
-  async getRoleList() {
-    try {
-      return await connection.models.Role.findAll()
-    } catch (error) {
-      logger.error('Error while getting role list', error)
-      throw error
-    }
   }
 }
 

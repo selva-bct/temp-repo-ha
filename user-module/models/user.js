@@ -48,6 +48,7 @@ export const User = sequelize.define('User', {
     defaultValue: Sequelize.NOW
   }
 }, {
+  // schema:'hagep',
   timestamps: true,
   underscored: true,
   paranoid: true, // remove this if the entities are gonna be hard deleted
@@ -66,13 +67,13 @@ Role.belongsToMany(User, { through: 'user_permission' })
 User.hasMany(Address)
 User.hasMany(Contact)
 
-// To insert table test data
+// // To insert table test data
 // sequelize.sync()
 //     .then(async () => {
 //         const newUser = await User.create({
-//             firstName: 'qsadsrsadssdw',
+//             firstName: 'Eswar',
 //             lastName: 'qsrssw',
-//             email: 'qrssssw@ssqw.com',
+//             email: 'eswar.p@bahwancybertek.com',
 //             token: 'qrssw',
 //             username: 'qssasadassw'
 //         })

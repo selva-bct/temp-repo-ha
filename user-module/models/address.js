@@ -32,6 +32,7 @@ export const Address = sequelize.define('Address', {
     type: Sequelize.STRING
   }
 }, {
+  // schema:'hagep',
   timestamps: true,
   underscored: true,
   paranoid: true,

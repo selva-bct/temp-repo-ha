@@ -1,22 +1,29 @@
 // internal package
 import { logger } from '../config/logger'
-import { responseService, userService } from '../service'
+import { ResponseService, UserService, RoleService } from '../service'
 import { defaultMessage } from '../constant/constant'
 
 class RoleController {
+  constructor() {
+    this.responseService = new ResponseService()
+    this.userService = new UserService()
+    this.roleService =  new RoleService()
+  }
+
   async addRole (req, res) {
     try {
       logger.info('Adding new role')
       const role = req.body
-      if (!(role)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+      if (!role) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const data = await userService.addRole(role)
-      logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      const data = await this.roleService.addRole(role)
+      logger.info('Created role successfully')
+      this.responseService.onSuccess(res, 'Created role successfully', data)
     } catch (error) {
-      logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      logger.error(error, 'Error while creating role')
+      this.responseService.onError(res, error)
     }
   }
 
@@ -24,19 +31,20 @@ class RoleController {
     try {
       logger.info('Updating existing role')
       const role = req.body
-      if (!(role)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+      if (!role) {
+        return this.responseService.validationError(res, 
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const roleInfo = await userService.getRole(role.roleId)
+      const roleInfo = await this.roleService.getRole(role.roleId)
       if (!roleInfo) {
-        return responseService.onError(res, defaultMessage.NOT_FOUND)
+        return this.responseService.onError(res, defaultMessage.NOT_FOUND)
       }
-      await userService.updateRole(role)
-      logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS)
+      await this.roleService.updateRole(role)
+      logger.info('Role updated successfully')
+      this.responseService.onSuccess(res, 'Role updated successfully')
     } catch (error) {
-      logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      logger.error(error, 'Error while updating role')
+      this.responseService.onError(res, error)
     }
   }
 
@@ -44,24 +52,24 @@ class RoleController {
     try {
       logger.info('Getting role by Id')
       const { id } = req.params
-      const data = await userService.getRole(id)
-      logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      const data = await this.roleService.getRole(id)
+      logger.info('Successfully fetched role')
+      this.responseService.onSuccess(res, 'Successfully fetched role', data)
     } catch (error) {
-      logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      logger.error(error, 'Error while getting role')
+      this.responseService.onError(res, error)
     }
   }
 
   async getRoleList (req, res) {
     try {
       logger.info('Getting role list')
-      const data = await userService.getRoleList()
-      logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS, data)
+      const data = await this.roleService.getRoleList()
+      logger.info('Successfully fetched roles')
+      this.responseService.onSuccess(res, 'Successfully fetched roles', data)
     } catch (error) {
-      logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      logger.error(error, 'Error while getting roles')
+      this.responseService.onError(res, error)
     }
   }
 
@@ -69,17 +77,18 @@ class RoleController {
     try {
       logger.info('Deleting role')
       const { id } = req.params
-      const role = await userService.getRole(id)
+      const role = await this.roleService.getRole(id)
       if (!role) {
-        return responseService.onError(res, defaultMessage.NOT_FOUND)
+        return this.responseService.onError(res, new Error(defaultMessage.NOT_FOUND))
       }
-      await userService.deleteRole(id)
-      logger.info(defaultMessage.SUCCESS)
-      responseService.onSuccess(res, defaultMessage.SUCCESS)
+      await this.roleService.deleteRole(id)
+      logger.info('Successfully deleted role')
+      this.responseService.onSuccess(res, defaultMessage.SUCCESS)
     } catch (error) {
-      logger.error(error, defaultMessage.ERROR)
-      responseService.onError(res, defaultMessage.ERROR, error)
+      logger.error(error, 'Error while deleting role')
+      this.responseService.onError(res, error)
     }
   }
 }
+
 module.exports = RoleController
