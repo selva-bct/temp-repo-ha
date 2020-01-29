@@ -1,5 +1,6 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
+import { dbProperties } from 'config'
 
 export const Role = sequelize.define('Role', {
   roleId: {
@@ -12,7 +13,7 @@ export const Role = sequelize.define('Role', {
 
   }
 }, {
-  // schema:'hagep',
+  schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
   paranoid: true,

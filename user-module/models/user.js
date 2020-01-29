@@ -3,6 +3,7 @@ import sequelize from './../config/db-conection'
 import { Role } from './role'
 import { Address } from './address'
 import { Contact } from './contact'
+import { dbProperties } from 'config'
 
 export const User = sequelize.define('User', {
   userId: {
@@ -48,7 +49,7 @@ export const User = sequelize.define('User', {
     defaultValue: Sequelize.NOW
   }
 }, {
-  // schema:'hagep',
+  schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
   paranoid: true, // remove this if the entities are gonna be hard deleted

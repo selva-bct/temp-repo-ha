@@ -30,22 +30,5 @@ export const cognitoUserCreation = {
   ERROR: 'Failed to create user'
 }
 
-export const cognitoUserAuthentication = {
-  SUCCESS: 'Successfully logged in',
-  ERROR: {
-    EMAIL: 'Email not found',
-    USERNAME: 'Username not found',
-    PASSWORD: 'Wrong password'
-  }
-}
 
-export const forgotPasswordRequest = {
-  SUCCESS: 'Check your email to reset the password',
-  ERROR: 'Error while request for forgot password'
-}
-
-export const changePasswordRequest = {
-  SUCCESS: 'Change Password Request was successful',
-  ERROR: 'Error while changing password'
-}
 

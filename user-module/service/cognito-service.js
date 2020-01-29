@@ -26,18 +26,18 @@ export class CognitoService {
     this.userService = new UserService()
   }
 
-  async createUser (name, email, password) {
+  async createUser (email, password) {
     try {
       logger.info('Creating user')
       const passwordParams = {
         Password: password,
         Permanent: true,
-        Username: name,
+        Username: email,
         UserPoolId: cognito.userPoolId
       }
       const params = {
         UserPoolId: cognito.userPoolId,
-        Username: name,
+        Username: email,
         ForceAliasCreation: true,
         MessageAction: 'SUPPRESS',
         DesiredDeliveryMediums: ['EMAIL'],
@@ -53,7 +53,7 @@ export class CognitoService {
       logger.info(cognitoUserCreation.SUCCESS)
       this.adminSetUserPassword(passwordParams)
       logger.info('Admin setting user email verified as true')
-      const param = { UserPoolId: cognito.userPoolId, Username: name, UserAttributes: [{ Name: 'email_verified', Value: 'true' }] }
+      const param = { UserPoolId: cognito.userPoolId, Username: email, UserAttributes: [{ Name: 'email_verified', Value: 'true' }] }
       await promisify(this.cognitoClient.adminUpdateUserAttributes.bind(this.cognitoClient, param))()
       logger.info('Admin setting user email verified as true was successfull')
       return userData

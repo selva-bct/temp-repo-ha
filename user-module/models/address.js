@@ -1,5 +1,6 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
+import { dbProperties } from 'config'
 
 export const Address = sequelize.define('Address', {
   userId: {
@@ -32,7 +33,7 @@ export const Address = sequelize.define('Address', {
     type: Sequelize.STRING
   }
 }, {
-  // schema:'hagep',
+  schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
   paranoid: true,

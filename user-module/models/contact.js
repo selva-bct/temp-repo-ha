@@ -1,5 +1,6 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
+import { dbProperties } from 'config'
 
 export const Contact = sequelize.define('Contact', {
   contactId: {
@@ -16,7 +17,7 @@ export const Contact = sequelize.define('Contact', {
 
   }
 }, {
-  // schema:'hagep',
+  schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
   paranoid: true,

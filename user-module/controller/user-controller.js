@@ -1,5 +1,5 @@
 import crypto from 'crypto'
-import { secret } from 'config'
+import { secret, host, port } from 'config'
 
 // internal package
 import { logger } from '../config/logger'
@@ -8,14 +8,13 @@ import {
   UserService,
   CognitoService,
   RoleService,
-  AddressService
+  AddressService,
+  EmailService
 } from '../service'
 import {
   defaultStatusCode,
   defaultMessage,
-  cognitoUserCreation,
-  changePasswordRequest
-} from '../constant/constant'
+  cognitoUserCreation} from '../constant/constant'
 
 class UserController {
   constructor() {
@@ -24,6 +23,7 @@ class UserController {
     this.roleService = new RoleService()
     this.userService = new UserService()
     this.responseService = new ResponseService()
+    this.emailService = new EmailService()
   }
 
   async authenticate(req, res) {
@@ -51,12 +51,12 @@ class UserController {
   async register(req, res, next) {
     try {
       logger.info('User registration')
-      const { body: { name, email, password } } = req
-      if (!(name && email && password)) {
+      const { body: { email, password } } = req
+      if (!(email && password)) {
         return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      await this.cognitoService.createUser(name, email, password)
+      await this.cognitoService.createUser(email, password)
       const updatedUser = await this.userService.updateUser({
         email,
         status: 'registered',
@@ -219,13 +219,18 @@ class UserController {
       // assign the newly created address to the user
       const newAddress = await this.addressService.createAddress(body)
       // read the role type for frontend and validate via enum
-      //To do :: Bring this role id from frontend
+      //Todo :: Bring this role id from frontend
       const role = await this.roleService.getRole(1)
       // Todo: Assign address nick name based on the role assigned
       const newUser = await this.userService.createUser(user)
       console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)
       await newUser.setRoles(role)
       await newUser.setAddresses(newAddress)
+      this.emailService.sendMail({
+        to: [newUser.email],
+        subject: 'GEP Invite',
+        message: `http://${host}:${port}/auth/signup/${hash}`
+      })
       // Todo:: need to send email
       logger.info('sucessfully created the user')
       this.responseService.onSuccess(res, 'user invited successfully')
