@@ -1,4 +1,5 @@
 module.exports = {
+  secret: 'abcdefgh',
   cognito: {
     userPoolId: '',
     appClientId: '',
@@ -10,5 +11,20 @@ module.exports = {
       stream: process.stdout,
       level: 'trace'
     }
+  },
+  ses: {
+    secretAccessKey: '',
+    accessKeyId: '',
+    region: 'ap-south-1',
+    apiVersion: '2010-12-01'
+  },
+  dbProperties: {
+    database: '',
+    username: '',
+    password: '',
+    host: '',
+    dialect: 'postgres',
+    port: 5432
   }
+
 }

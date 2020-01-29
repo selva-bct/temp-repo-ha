@@ -9,12 +9,7 @@ export class EmailService {
         }
         instance = this
         if (!this.AWS_SES) {
-            AWS.config.update({
-                region: 'ap-south-1',
-                secretAccessKey: '9ukPiu8jy0MK+pRFnBzarRwpjodplEFAn9KeRyeQ',
-                accessKeyId: 'AKIAT63XT7FYXEGTNJLN',
-                apiVersion: '2010-12-01'
-            });
+            AWS.config.update(ses);
             this.AWS_SES = new AWS.SES(ses)
         }
     }
