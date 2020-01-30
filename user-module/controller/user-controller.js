@@ -14,10 +14,11 @@ import {
 import {
   defaultStatusCode,
   defaultMessage,
-  cognitoUserCreation} from '../constant/constant'
+  cognitoUserCreation
+} from '../constant/constant'
 
 class UserController {
-  constructor() {
+  constructor () {
     this.addressService = new AddressService()
     this.cognitoService = new CognitoService()
     this.roleService = new RoleService()
@@ -26,7 +27,7 @@ class UserController {
     this.emailService = new EmailService()
   }
 
-  async authenticate(req, res) {
+  async authenticate (req, res) {
     const { email, password } = req.body
     try {
       logger.info('Authenticating user')
@@ -48,7 +49,7 @@ class UserController {
     }
   }
 
-  async register(req, res, next) {
+  async register (req, res, next) {
     try {
       logger.info('User registration')
       const { body: { email, password } } = req
@@ -73,7 +74,7 @@ class UserController {
     }
   }
 
-  async changePassword(req, res) {
+  async changePassword (req, res) {
     try {
       logger.info('Requesting for change of Password')
       const { oldPassword, password, confirmPassword } = req.body
@@ -94,7 +95,7 @@ class UserController {
     }
   }
 
-  async forgotPassword(req, res) {
+  async forgotPassword (req, res) {
     try {
       logger.info('Requesting for resetting the password')
       const { email } = req.body
@@ -111,7 +112,7 @@ class UserController {
     }
   }
 
-  async resetPassword(req, res) {
+  async resetPassword (req, res) {
     try {
       logger.info('Requesting for reset of Password')
       const { email, password, confirmationCode } = req.body
@@ -128,7 +129,7 @@ class UserController {
     }
   }
 
-  async validateToken(req, res, next) {
+  async validateToken (req, res, next) {
     try {
       logger.info('Into verifying user')
       const { authorization } = req.headers
@@ -149,15 +150,11 @@ class UserController {
     }
   }
 
-  async getUser(req, res) {
+  async getUser (req, res) {
     try {
       logger.info('Getting user by Email')
-      const { email } = req.body
-      if (!(email)) {
-        return this.responseService.validationError(res,
-          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
-      }
-      const data = await this.userService.getUser(email)
+      const { id } = req.params
+      const data = await this.userService.getUserById(id)
       logger.info('Successfully fetch user data')
       this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
@@ -166,15 +163,16 @@ class UserController {
     }
   }
 
-  async updateUser(req, res) {
+  async updateUser (req, res) {
     try {
       logger.info('Updating user data')
       const user = req.body
+      const id = req.params
       if (!(user)) {
         return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const userInfo = await this.userService.getUser(user.email)
+      const userInfo = await this.userService.getUserById(id)
       if (!userInfo) {
         logger.error(defaultMessage.NOT_FOUND)
         return this.responseService.NOT_FOUND(res, defaultMessage.NOT_FOUND)
@@ -188,25 +186,25 @@ class UserController {
     }
   }
 
-  async getUserList(req, res) {
+  async getUserList (req, res) {
     try {
       logger.info('Getting user list')
       const data = await this.userService.getUserList()
       logger.info('Successfully fetch user list')
-      this.responseService.onSuccess(res,'Successfully fetch user list', data)
+      this.responseService.onSuccess(res, 'Successfully fetch user list', data)
     } catch (error) {
       logger.error(error, 'Error while fetching user list')
       this.responseService.onError(res, error)
     }
   }
 
-  async inviteUser(req, res) {
+  async inviteUser (req, res) {
     try {
       logger.info('Into invite user')
       const { body } = req
       const hash = crypto.createHmac('sha256', secret)
         .update(JSON.stringify(body))
-        .digest('hex');
+        .digest('hex')
       // Todo:: validate the req body
       let user = body
       user = {
@@ -219,7 +217,7 @@ class UserController {
       // assign the newly created address to the user
       const newAddress = await this.addressService.createAddress(body)
       // read the role type for frontend and validate via enum
-      //Todo :: Bring this role id from frontend
+      // Todo :: Bring this role id from frontend
       const role = await this.roleService.getRole(1)
       // Todo: Assign address nick name based on the role assigned
       const newUser = await this.userService.createUser(user)
@@ -240,12 +238,12 @@ class UserController {
     }
   }
 
-  async getUserByToken(req, res) {
+  async getUserByToken (req, res) {
     try {
       const { inviteToken } = req.params
       // checking if the token received belongs to a valid user
       const user = await this.userService.getUserByInviteToken(inviteToken)
-      let error;
+      let error
       if (!user) {
         error = new Error('INVALID_TOKEN')
       }

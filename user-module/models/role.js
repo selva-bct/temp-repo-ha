@@ -26,7 +26,6 @@ export const Role = sequelize.define('Role', {
   ]
 })
 
-
 // sequelize.sync().then(async()=> {
 //   await Role.create({
 //     role: 'Patient'

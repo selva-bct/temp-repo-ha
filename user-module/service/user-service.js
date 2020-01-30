@@ -4,9 +4,9 @@ import { Role } from '../models/role'
 import { Address } from '../models/address'
 
 export class UserService {
-  constructor() { }
+  constructor () { }
 
-  createUser(user) {
+  createUser (user) {
     return new Promise(async (resolve, reject) => {
       try {
         if (!user) {
@@ -28,7 +28,7 @@ export class UserService {
     })
   }
 
-  getUserByEmail(email) {
+  getUserByEmail (email) {
     return new Promise(async (resolve, reject) => {
       try {
         const user = await connection.models.User.findOne({
@@ -42,7 +42,8 @@ export class UserService {
       }
     })
   }
-  async getUserList() {
+
+  async getUserList () {
     try {
       return await connection.models.User.findAll({
         include: [{
@@ -58,8 +59,7 @@ export class UserService {
     }
   }
 
-
-  async updateUser(user) {
+  async updateUser (user) {
     try {
       return await connection.models.User.update(user, { where: { email: (user.email) } })
     } catch (error) {
@@ -68,12 +68,26 @@ export class UserService {
     }
   }
 
-  async getUser(email) {
+  async getUser (email) {
     try {
       return await connection.models.User.findOne({
-        where: { email },
+        where: { email }
+      })
+    } catch (error) {
+      logger.error('Error while getting user ', error)
+      throw error
+    }
+  }
+
+  async getUserById (userId) {
+    try {
+      return await connection.models.User.findOne({
+        where: { userId },
         include: [{
           model: Role
+        },
+        {
+          model: Address
         }]
       })
     } catch (error) {
@@ -82,7 +96,7 @@ export class UserService {
     }
   }
 
-  getUserByInviteToken(token) {
+  getUserByInviteToken (token) {
     return new Promise(async (resolve, reject) => {
       try {
         const user = await connection.models.User.findOne({
@@ -93,7 +107,7 @@ export class UserService {
               model: connection.models.Address
             }
           ],
-          // attribute: 
+          // attribute:
           where: {
             inviteToken: token
           }
@@ -108,4 +122,3 @@ export class UserService {
     })
   }
 }
-

@@ -29,6 +29,3 @@ export const cognitoUserCreation = {
   SUCCESS: 'User created successfully',
   ERROR: 'Failed to create user'
 }
-
-
-

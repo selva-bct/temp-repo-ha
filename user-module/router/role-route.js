@@ -5,10 +5,10 @@ const roleRouter = express.Router()
 const roleController = new RoleController()
 
 roleRouter
-  .post('/addRole', roleController.addRole.bind(roleController))
-  .put('/updateRole', roleController.updateRole.bind(roleController))
-  .get('/getRole/:id', roleController.getRole.bind(roleController))
-  .delete('/deleteRole/:id', roleController.deleteRole.bind(roleController))
-  .get('/getRoleList', roleController.getRoleList.bind(roleController))
+  .post('/', roleController.addRole.bind(roleController))
+  .put('/', roleController.updateRole.bind(roleController))
+  .get('/:id', roleController.getRole.bind(roleController))
+  .delete('/:id', roleController.deleteRole.bind(roleController))
+  .get('/', roleController.getRoleList.bind(roleController))
 
 module.exports = roleRouter

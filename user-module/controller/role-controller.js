@@ -4,10 +4,10 @@ import { ResponseService, UserService, RoleService } from '../service'
 import { defaultMessage } from '../constant/constant'
 
 class RoleController {
-  constructor() {
+  constructor () {
     this.responseService = new ResponseService()
     this.userService = new UserService()
-    this.roleService =  new RoleService()
+    this.roleService = new RoleService()
   }
 
   async addRole (req, res) {
@@ -32,7 +32,7 @@ class RoleController {
       logger.info('Updating existing role')
       const role = req.body
       if (!role) {
-        return this.responseService.validationError(res, 
+        return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
       const roleInfo = await this.roleService.getRole(role.roleId)

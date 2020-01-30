@@ -1,7 +1,7 @@
 import bunyan from 'bunyan'
 
 const config = require('config')
-let logger;
+let logger
 if (process.enc === 'production') {
   logger = bunyan.createLogger({
     name: 'user-module',
@@ -10,7 +10,6 @@ if (process.enc === 'production') {
 } else {
   logger = console
 }
-
 
 export {
   logger
