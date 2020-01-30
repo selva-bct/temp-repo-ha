@@ -4,6 +4,7 @@ import { CognitoService } from './cognito-service'
 import { AddressService } from './address-service'
 import { RoleService } from './role-service'
 import { EmailService } from './email-service'
+import { CryptoService } from './crypto-service'
 
 export {
   ResponseService,
@@ -11,5 +12,6 @@ export {
   CognitoService,
   RoleService,
   AddressService,
-  EmailService
+  EmailService,
+  CryptoService
 }
