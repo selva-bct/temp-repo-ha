@@ -9,7 +9,8 @@ import {
   CognitoService,
   RoleService,
   AddressService,
-  EmailService
+  EmailService,
+  CryptoService
 } from '../service'
 import {
   defaultStatusCode,
@@ -25,6 +26,7 @@ class UserController {
     this.userService = new UserService()
     this.responseService = new ResponseService()
     this.emailService = new EmailService()
+    this.cryptoService = new CryptoService()
   }
 
   async authenticate (req, res) {
@@ -37,8 +39,11 @@ class UserController {
       }
       const data = await this.cognitoService.login(email, password)
       await this.cognitoService.resetFailAttempts(email)
-      logger.info('user authenticated successfully')
-      return this.responseService.onSuccess(res, 'user authenticated successfully', data)
+      const encryptedToken = this.cryptoService.encrypt(data)
+      logger.info('user authenticated successfully', data)      
+      return this.responseService.onSuccess(res, 'user authenticated successfully', {
+        accessToken: encryptedToken
+      })
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
       await this.cognitoService.updateFailAttempts(email)
