@@ -40,7 +40,7 @@ class UserController {
       const data = await this.cognitoService.login(email, password)
       await this.cognitoService.resetFailAttempts(email)
       const encryptedToken = this.cryptoService.encrypt(data)
-      logger.info('user authenticated successfully', data)      
+      logger.info('user authenticated successfully', data)
       return this.responseService.onSuccess(res, 'user authenticated successfully', {
         accessToken: encryptedToken
       })
