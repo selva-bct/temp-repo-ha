@@ -52,10 +52,10 @@ export const User = sequelize.define('User', {
     type: Sequelize.INTEGER
   }
 }, {
-  schema: dbProperties.schema,
+  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  paranoid: true, // remove this if the entities are gonna be hard deleted
+  // paranoid: true, // remove this if the entities are gonna be hard deleted
   tableName: 'ghe_user',
   indexes: [
     {

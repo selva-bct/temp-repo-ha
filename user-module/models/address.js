@@ -33,9 +33,9 @@ export const Address = sequelize.define('Address', {
     type: Sequelize.STRING
   }
 }, {
-  schema: dbProperties.schema,
+  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  paranoid: true,
+  //paranoid: true,
   tableName: 'ghe_user_address'
 })

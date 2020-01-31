@@ -21,9 +21,9 @@ export const Contact = sequelize.define('Contact', {
 
   }
 }, {
-  schema: dbProperties.schema,
+ // schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  paranoid: true,
+ // paranoid: true,
   tableName: 'ghe_contact'
 })

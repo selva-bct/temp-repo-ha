@@ -13,10 +13,10 @@ export const Role = sequelize.define('Role', {
 
   }
 }, {
-  schema: dbProperties.schema,
+  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  paranoid: true,
+  //paranoid: true,
   tableName: 'ghe_role',
   indexes: [
     {
