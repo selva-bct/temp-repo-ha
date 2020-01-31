@@ -60,7 +60,7 @@ class UserController {
       await this.cognitoService.createUser(email, password)
       const updatedUser = await this.userService.updateUser({
         email,
-        status: 'registered',
+        userStatus: 'registered',
         registeredAt: new Date()
       })
       this.responseService.onSuccess(res, cognitoUserCreation.SUCCESS, updatedUser, defaultStatusCode.RESOURCE_CREATED)
@@ -136,7 +136,7 @@ class UserController {
       if (!(authorization)) {
         return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
       }
-      const user = await cognitoService.validateToken(authorization)
+      const user = await this.cognitoService.validateToken(authorization)
       if (!user) {
         const error = new Error(defaultMessage.NOT_AUTHORIZED)
         logger.error(error, defaultMessage.NOT_AUTHORIZED)
@@ -207,11 +207,14 @@ class UserController {
         .digest('hex')
       // Todo:: validate the req body
       let user = body
+      if (!(user)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
+      }
       user = {
         ...user,
-        invitedAt: new Date(),
-        inviteToken: hash,
-        status: 'invited'
+        tokenValue: hash,
+        userStatus: 'invited'
       }
       // save the address
       // assign the newly created address to the user
@@ -219,6 +222,13 @@ class UserController {
       // read the role type for frontend and validate via enum
       // Todo :: Bring this role id from frontend
       const role = await this.roleService.getRole(1)
+
+      const userInfo = await this.getUserByEmail(user.email)
+      if (userInfo) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.USER_ALREADY_EXIST))
+      }
+
       // Todo: Assign address nick name based on the role assigned
       const newUser = await this.userService.createUser(user)
       console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)

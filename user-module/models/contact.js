@@ -3,10 +3,14 @@ import sequelize from './../config/db-conection'
 import { dbProperties } from 'config'
 
 export const Contact = sequelize.define('Contact', {
-  contactId: {
+  userContactId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true
+  },
+  userId: {
+    type: Sequelize.INTEGER
+
   },
   contactNickname: {
     type: Sequelize.STRING
@@ -21,12 +25,5 @@ export const Contact = sequelize.define('Contact', {
   timestamps: true,
   underscored: true,
   paranoid: true,
-  tableName: 'contact'
-  // ,
-  // indexes: [
-  //     {
-  //         unique: true,
-  //         fields: ['phoneNumber']
-  //     }
-  // ]
+  tableName: 'ghe_contact'
 })

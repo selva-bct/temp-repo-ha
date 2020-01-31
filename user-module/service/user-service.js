@@ -9,15 +9,6 @@ export class UserService {
   createUser (user) {
     return new Promise(async (resolve, reject) => {
       try {
-        if (!user) {
-          const error = new Error('EMPTY_USER_OBJECT')
-          return reject(error)
-        }
-        const oldUser = await this.getUserByEmail(user.email)
-        if (oldUser) {
-          const error = new Error('USER_ALREADY_EXIST')
-          return reject(error)
-        }
         const newUser = await connection.models.User.create(user)
         resolve(newUser)
         logger.info('Successfully created user')

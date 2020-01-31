@@ -101,9 +101,18 @@ export class CognitoService {
       logger.info('update login failed attempts')
       const user = await this.userService.getUser(email)
       if (user) {
+        /*  if (user.loginAttempts > 5) {
+          const params = {
+            UserPoolId: cognito.userPoolId,
+            Username: email
+          }
+          await promisify(this.cognitoClient.adminDisableUser.bind(this.cognitoClient, params))()
+          throw new Error('Account has locked')
+        } */
         const data = {
           email,
-          loginAttempts: user.loginAttempts + 1
+          loginAttempts: user.loginAttempts + 1,
+          lastLoginAt: new Date()
         }
         await this.userService.updateUser(data)
       }
@@ -120,7 +129,8 @@ export class CognitoService {
       if (user) {
         const data = {
           email,
-          loginAttempts: 0
+          loginAttempts: 0,
+          lastLoginAt: new Date()
         }
         await this.userService.updateUser(data)
       }

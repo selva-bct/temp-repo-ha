@@ -22,7 +22,8 @@ export const defaultMessage = {
   NOT_AUTHORIZED_EXCEPTION: 'NotAuthorizedException',
   USERNAME_EXIST_EXCEPTION: 'UsernameExistsException',
   TOKEN_VALIDATION_ERROR: 'Error while validating token',
-  MANDATORY_FIELDS_MISSING: 'Mandatory fields are missing'
+  MANDATORY_FIELDS_MISSING: 'Mandatory fields are missing',
+  USER_ALREADY_EXIST: 'User already exits'
 }
 
 export const cognitoUserCreation = {

@@ -3,10 +3,13 @@ import sequelize from './../config/db-conection'
 import { dbProperties } from 'config'
 
 export const Address = sequelize.define('Address', {
-  userId: {
+  userAddressId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true
+  },
+  userId: {
+    type: Sequelize.INTEGER
   },
   addressNickname: {
     type: Sequelize.STRING
@@ -15,9 +18,6 @@ export const Address = sequelize.define('Address', {
     type: Sequelize.STRING
   },
   addressLine2: {
-    type: Sequelize.STRING
-  },
-  addressLine3: {
     type: Sequelize.STRING
   },
   city: {
@@ -37,5 +37,5 @@ export const Address = sequelize.define('Address', {
   timestamps: true,
   underscored: true,
   paranoid: true,
-  tableName: 'address'
+  tableName: 'ghe_user_address'
 })

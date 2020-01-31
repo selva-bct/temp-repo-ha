@@ -26,34 +26,37 @@ export const User = sequelize.define('User', {
       isEmail: true
     }
   },
-  // need to get clarification
-  status: {
-    type: Sequelize.STRING,
-    defaultValue: 'abc'
+  userStatus: {
+    type: Sequelize.STRING
   },
-  lastLogin: {
+  registeredAt: {
+    type: Sequelize.DATE
+  },
+  locale: {
+    type: Sequelize.STRING
+  },
+  lastLoginAt: {
     type: Sequelize.DATE
   },
   loginAttempts: {
     type: Sequelize.INTEGER,
     defaultValue: 0
   },
-  inviteToken: {
+  tokenValue: {
     type: Sequelize.STRING
   },
-  registeredAt: {
+  tokenSentAt: {
     type: Sequelize.DATE
   },
-  invitedAt: {
-    type: Sequelize.DATE,
-    defaultValue: Sequelize.NOW
+  tokenExpiryDur: {
+    type: Sequelize.INTEGER
   }
 }, {
   schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
   paranoid: true, // remove this if the entities are gonna be hard deleted
-  tableName: 'user',
+  tableName: 'ghe_user',
   indexes: [
     {
       unique: true,
@@ -62,8 +65,8 @@ export const User = sequelize.define('User', {
   ]
 })
 
-User.belongsToMany(Role, { through: 'user_permission' })
-Role.belongsToMany(User, { through: 'user_permission' })
+Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'userId' })
+User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'roleId' })
 
 User.hasMany(Address)
 User.hasMany(Contact)
@@ -72,11 +75,11 @@ User.hasMany(Contact)
 // sequelize.sync()
 //     .then(async () => {
 //         const newUser = await User.create({
-//             firstName: 'Eswar',
-//             lastName: 'qsrssw',
-//             email: 'eswar.p@bahwancybertek.com',
-//             token: 'qrssw',
-//             username: 'qssasadassw'
+//             firstName: 'Test',
+//             lastName: 'Test',
+//             email: 'Test@bahwancybertek.com',
+//             token: 'qsfafas',
+//             username: 'Test'
 //         })
 //         const fetchedRole = await Role.findAll({
 //             where: {

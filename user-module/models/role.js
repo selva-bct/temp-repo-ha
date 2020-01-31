@@ -9,7 +9,7 @@ export const Role = sequelize.define('Role', {
     autoIncrement: true
   },
   role: {
-    type: Sequelize.STRING
+    type: Sequelize.JSON
 
   }
 }, {
@@ -17,7 +17,7 @@ export const Role = sequelize.define('Role', {
   timestamps: true,
   underscored: true,
   paranoid: true,
-  tableName: 'role',
+  tableName: 'ghe_role',
   indexes: [
     {
       unique: true,
@@ -25,9 +25,3 @@ export const Role = sequelize.define('Role', {
     }
   ]
 })
-
-// sequelize.sync().then(async()=> {
-//   await Role.create({
-//     role: 'Patient'
-//   })
-// })
