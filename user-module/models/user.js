@@ -50,6 +50,20 @@ export const User = sequelize.define('User', {
   },
   tokenExpiryDur: {
     type: Sequelize.INTEGER
+  },
+  createdBy: {
+    type: Sequelize.INTEGER
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    defaultValue: new Date()
+  },
+  updatedBy: {
+    type: Sequelize.INTEGER
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    defaultValue: new Date()
   }
 }, {
   //schema: dbProperties.schema,
@@ -65,8 +79,8 @@ export const User = sequelize.define('User', {
   ]
 })
 
-Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'userId' })
-User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'roleId' })
+Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'roleId' })
+User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'userId' })
 
 User.hasMany(Address)
 User.hasMany(Contact)

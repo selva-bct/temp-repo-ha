@@ -1,15 +1,17 @@
 import Sequelize from 'sequelize'
-import sequelize from './../config/db-conection'
+import sequelize from '../config/db-conection'
 
-export const Role = sequelize.define('Role', {
-  roleId: {
+export const Program = sequelize.define('Program', {
+  programId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
-  role: {
+  programName: {
     type: Sequelize.JSON
-
+  },
+  programStatus: {
+    type: Sequelize.STRING
   },
   createdBy: {
     type: Sequelize.INTEGER
@@ -26,15 +28,7 @@ export const Role = sequelize.define('Role', {
     defaultValue: new Date()
   }
 }, {
-  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  //paranoid: true,
-  tableName: 'ghe_role',
-  indexes: [
-    {
-      unique: true,
-      fields: ['role']
-    }
-  ]
+  tableName: 'ghe_program'
 })

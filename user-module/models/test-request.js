@@ -1,36 +1,47 @@
 import Sequelize from 'sequelize'
-import sequelize from './../config/db-conection'
+import sequelize from '../config/db-conection'
 
-export const Address = sequelize.define('Address', {
-  userAddressId: {
+export const TestRequest = sequelize.define('TestRequest', {
+  testRequestId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
+  trfId: {
+    type: Sequelize.INTEGER
+  },
   userId: {
     type: Sequelize.INTEGER
   },
-  addressNickname: {
-    type: Sequelize.STRING,
-    defaultValue: 'home'
+  formData: {
+    type: Sequelize.JSON
   },
-  addressLine1: {
-    type: Sequelize.STRING
-  },
-  addressLine2: {
-    type: Sequelize.STRING
-  },
-  city: {
-    type: Sequelize.STRING
-  },
-  state: {
-    type: Sequelize.STRING
-  },
-  zip: {
+  programId: {
     type: Sequelize.INTEGER
   },
-  country: {
+  testRequestStatus: {
     type: Sequelize.STRING
+  },
+  submittedBy: {
+    type: Sequelize.STRING
+  },
+  submittedAt: {
+    type: Sequelize.DATE
+  },
+  reportEstReceiptAt: {
+    type: Sequelize.DATE
+  },
+  reportActReceiptAt: {
+    type: Sequelize.DATE
+  },
+  reportStatus: {
+    type: Sequelize.STRING
+  },
+  resultCount: {
+    type: Sequelize.INTEGER
+  },
+  viewedFlag: {
+    type: Sequelize.JSON
   },
   createdBy: {
     type: Sequelize.INTEGER
@@ -45,17 +56,9 @@ export const Address = sequelize.define('Address', {
   updatedAt: {
     type: Sequelize.DATE,
     defaultValue: new Date()
-  },
-  deletedAt: {
-    type: Sequelize.DATE
-  },
-  deletedBy: {
-    type: Sequelize.INTEGER
   }
 }, {
-  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  //paranoid: true,
-  tableName: 'ghe_user_address'
+  tableName: 'ghe_test_request'
 })

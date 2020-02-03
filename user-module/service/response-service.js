@@ -4,10 +4,10 @@ let instance
 
 export class ResponseService {
   constructor (value) {
-    if (instance) {
-      return instance
+    if (!instance) {
+      instance = this
     }
-    instance = this
+    return instance
   }
 
   onSuccess (res, message, data, statusCode) {

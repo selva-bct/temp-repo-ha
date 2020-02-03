@@ -58,8 +58,8 @@ export class AddressService {
       try {
         logger.info('Into creating address')
         // validate the incoming address field
-        const addressData = collectNeededAddressInfo(address)
-        const newAddress = await Address.create(addressData)
+        //const addressData = collectNeededAddressInfo(address)
+        const newAddress = await Address.create(address)
         resolve(newAddress)
         logger.info('Successfully created address')
       } catch (error) {
@@ -117,11 +117,14 @@ function collectNeededAddressInfo (address) {
   const addressFields = [
     'addressLine1',
     'addressLine2',
-    'addressLine3',
     'city',
     'state',
-    'zipCode',
-    'country'
+    'zip',
+    'country',
+    'userId',
+    'createdBy',
+    'updatedBy'
+
   ]
   const reqObjAddress = pick(address, addressFields)
   for (const key in reqObjAddress) {

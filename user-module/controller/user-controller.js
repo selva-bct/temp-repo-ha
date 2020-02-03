@@ -12,6 +12,8 @@ import {
   EmailService,
   CryptoService
 } from '../service'
+
+import { setCreatedByUser, setUpdatedByUser } from './../service/util';
 import {
   defaultStatusCode,
   defaultMessage,
@@ -38,8 +40,13 @@ class UserController {
         return this.responseService.validationError(res, new Error(defaultMessage.VALIDATION_ERROR))
       }
       const data = await this.cognitoService.login(email, password)
-      await this.cognitoService.resetFailAttempts(email)
-      const encryptedToken = this.cryptoService.encrypt(data)
+      const userInfo = await this.userService.getUserByEmail(email)
+      await this.cognitoService.resetFailAttempts(userInfo)
+      const rawData = {
+        accessToken: data.AuthenticationResult.AccessToken,
+        userId: userInfo.userId
+      }
+      const encryptedToken = this.cryptoService.encrypt(rawData)
       logger.info('user authenticated successfully', data)
       return this.responseService.onSuccess(res, 'user authenticated successfully', {
         accessToken: encryptedToken
@@ -134,27 +141,6 @@ class UserController {
     }
   }
 
-  async validateToken (req, res, next) {
-    try {
-      logger.info('Into verifying user')
-      const { authorization } = req.headers
-      if (!(authorization)) {
-        return this.responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
-      }
-      const user = await this.cognitoService.validateToken(authorization)
-      if (!user) {
-        const error = new Error(defaultMessage.NOT_AUTHORIZED)
-        logger.error(error, defaultMessage.NOT_AUTHORIZED)
-        this.responseService.NOT_AUTHORIZED(res, defaultMessage.NOT_AUTHORIZED, defaultStatusCode.NOT_AUTHORIZED)
-      }
-      logger.info('Successfully verified user...')
-      next()
-    } catch (error) {
-      logger.error(error, defaultMessage.TOKEN_VALIDATION_ERROR)
-      next(error)
-    }
-  }
-
   async getUser (req, res) {
     try {
       logger.info('Getting user by Email')
@@ -221,24 +207,28 @@ class UserController {
         tokenValue: hash,
         userStatus: 'invited'
       }
-      // save the address
-      // assign the newly created address to the user
-      const newAddress = await this.addressService.createAddress(body)
-      // read the role type for frontend and validate via enum
-      // Todo :: Bring this role id from frontend
-      const role = await this.roleService.getRole(1)
 
-      const userInfo = await this.getUserByEmail(user.email)
+      const userInfo = await this.userService.getUserByEmail(user.email)
       if (userInfo) {
         return this.responseService.validationError(res,
           new Error(defaultMessage.USER_ALREADY_EXIST))
       }
-
+      user = setCreatedByUser(user, req.user)
       // Todo: Assign address nick name based on the role assigned
       const newUser = await this.userService.createUser(user)
+      // save the address
+      // assign the newly created address to the user
+      let address = body
+      address.userId = newUser.userId
+      address = setCreatedByUser(address, req.user)
+      await this.addressService.createAddress(address)
+      // read the role type for frontend and validate via enum
+      // Todo :: Bring this role id from frontend
+      const role = await this.roleService.getRole(1)
+      // role = setCreatedByUser(role, req.user)
       console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)
       await newUser.setRoles(role)
-      await newUser.setAddresses(newAddress)
+      // await newUser.setAddresses(newAddress)
       this.emailService.sendMail({
         to: [newUser.email],
         subject: 'GEP Invite',

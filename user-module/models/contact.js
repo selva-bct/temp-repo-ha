@@ -1,6 +1,5 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
-import { dbProperties } from 'config'
 
 export const Contact = sequelize.define('Contact', {
   userContactId: {
@@ -19,6 +18,20 @@ export const Contact = sequelize.define('Contact', {
   phoneNumber: {
     type: Sequelize.INTEGER
 
+  },
+  createdBy: {
+    type: Sequelize.INTEGER
+  },
+  createdAt: {
+    type: Sequelize.DATE,
+    defaultValue: new Date()
+  },
+  updatedBy: {
+    type: Sequelize.INTEGER
+  },
+  updatedAt: {
+    type: Sequelize.DATE,
+    defaultValue: new Date()
   }
 }, {
  // schema: dbProperties.schema,

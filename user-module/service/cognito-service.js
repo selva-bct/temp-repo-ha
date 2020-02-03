@@ -122,13 +122,12 @@ export class CognitoService {
     }
   }
 
-  async resetFailAttempts (email) {
+  async resetFailAttempts (user) {
     try {
       logger.info('Reset login failed attempts')
-      const user = await this.userService.getUser(email)
       if (user) {
         const data = {
-          email,
+          email: user.email,
           loginAttempts: 0,
           lastLoginAt: new Date()
         }
@@ -192,7 +191,7 @@ export class CognitoService {
   async validateToken (authorization) {
     try {
       const params = {
-        authorization: authorization
+        AccessToken: authorization
       }
       return await promisify(this.cognitoClient.getUser.bind(this.cognitoClient, params))()
     } catch (error) {
