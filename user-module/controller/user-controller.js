@@ -13,7 +13,7 @@ import {
   CryptoService
 } from '../service'
 
-import { setCreatedByUser, setUpdatedByUser } from './../service/util';
+import { setCreatedByUser } from './../service/util'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -163,7 +163,7 @@ class UserController {
         return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const userInfo = await this.userService.getUserById(id)
+      const userInfo = await this.userService.getUserById(id.id)
       if (!userInfo) {
         logger.error(defaultMessage.NOT_FOUND)
         return this.responseService.NOT_FOUND(res, defaultMessage.NOT_FOUND)

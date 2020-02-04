@@ -2,7 +2,7 @@ import Sequelize from 'sequelize'
 import sequelize from '../config/db-conection'
 
 export const UserRole = sequelize.define('UserRole', {
-  roleId: {
+  userRoleId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true

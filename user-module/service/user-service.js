@@ -70,10 +70,10 @@ export class UserService {
     }
   }
 
-  async getUserById (userId) {
+  async getUserById (id) {
     try {
       return await connection.models.User.findOne({
-        where: { userId },
+        where: { userId: Number(id) },
         include: [{
           model: Role
         },
@@ -100,7 +100,7 @@ export class UserService {
           ],
           // attribute:
           where: {
-            inviteToken: token
+            tokenValue: token
           }
           // need to add token to this
         })

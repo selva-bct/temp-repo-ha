@@ -3,7 +3,6 @@ import sequelize from './../config/db-conection'
 import { Role } from './role'
 import { Address } from './address'
 import { Contact } from './contact'
-import { dbProperties } from 'config'
 
 export const User = sequelize.define('User', {
   userId: {
@@ -66,10 +65,8 @@ export const User = sequelize.define('User', {
     defaultValue: new Date()
   }
 }, {
-  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  // paranoid: true, // remove this if the entities are gonna be hard deleted
   tableName: 'ghe_user',
   indexes: [
     {
@@ -82,7 +79,7 @@ export const User = sequelize.define('User', {
 Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'roleId' })
 User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'userId' })
 
-User.hasMany(Address)
+User.hasMany(Address, { foreignKey: 'userId' })
 User.hasMany(Contact)
 
 // // To insert table test data

@@ -2,7 +2,7 @@ import jwtDecode from 'jwt-decode'
 import { logger } from '../config/logger'
 import { ResponseService } from './response-service'
 import { CognitoService } from './cognito-service'
-import { defaultMessage } from './../constant/constant'
+import { defaultMessage, defaultStatusCode } from './../constant/constant'
 import { CryptoService } from './crypto-service'
 
 const responseService = new ResponseService()
@@ -45,4 +45,3 @@ async function decodeToken (token) {
     throw error
   }
 }
-

@@ -11,6 +11,10 @@ export const Role = sequelize.define('Role', {
     type: Sequelize.JSON
 
   },
+  roleDescription: {
+    type: Sequelize.JSON
+
+  },
   createdBy: {
     type: Sequelize.INTEGER
   },
@@ -26,10 +30,8 @@ export const Role = sequelize.define('Role', {
     defaultValue: new Date()
   }
 }, {
-  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  //paranoid: true,
   tableName: 'ghe_role',
   indexes: [
     {

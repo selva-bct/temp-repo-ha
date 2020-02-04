@@ -2,6 +2,7 @@
 import { logger } from '../config/logger'
 import { ResponseService, UserService, RoleService } from '../service'
 import { defaultMessage } from '../constant/constant'
+import { setCreatedByUser } from './../service/util'
 
 class RoleController {
   constructor () {
@@ -13,11 +14,12 @@ class RoleController {
   async addRole (req, res) {
     try {
       logger.info('Adding new role')
-      const role = req.body
+      let role = req.body
       if (!role) {
         return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
+      role = setCreatedByUser(role, req.user)
       const data = await this.roleService.addRole(role)
       logger.info('Created role successfully')
       this.responseService.onSuccess(res, 'Created role successfully', data)

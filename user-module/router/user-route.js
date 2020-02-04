@@ -10,7 +10,7 @@ userRouter
   .get('/:id', userController.getUser.bind(userController))
   .get('/', validateToken, userController.getUserList.bind(userController))
   .put('/:id', validateToken, userController.updateUser.bind(userController))
-  .post('/', validateToken, userController.register.bind(userController))
+  .post('/', userController.register.bind(userController))
 
   .post('/change-password', validateToken, userController.changePassword.bind(userController))
   .post('/invite', validateToken, userController.inviteUser.bind(userController))

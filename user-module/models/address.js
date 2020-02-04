@@ -45,17 +45,9 @@ export const Address = sequelize.define('Address', {
   updatedAt: {
     type: Sequelize.DATE,
     defaultValue: new Date()
-  },
-  deletedAt: {
-    type: Sequelize.DATE
-  },
-  deletedBy: {
-    type: Sequelize.INTEGER
   }
 }, {
-  //schema: dbProperties.schema,
   timestamps: true,
   underscored: true,
-  //paranoid: true,
   tableName: 'ghe_user_address'
 })
