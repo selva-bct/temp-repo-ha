@@ -5,6 +5,8 @@ import 'babel-polyfill'
 import express from 'express'
 import bodyParser from 'body-parser'
 
+import './config/db-conection'
+
 // internal pakage code
 import routes from './router'
 // import cors from 'cors'
@@ -23,7 +25,8 @@ const corsOptions = {
     }
   }
 }
-app.use(cors(corsOptions))
+// app.use(cors(corsOptions))
+app.use(cors())
 app.use(bodyParser.json()) // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })) // for parsing
 app.use('/api', routes)

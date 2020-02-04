@@ -1,101 +1,87 @@
-// external package
-import { cognito } from 'config'
-import AWS from 'aws-sdk'
-import { promisify } from 'util'
+import crypto from 'crypto'
+import { secret, host, port } from 'config'
 
 // internal package
 import { logger } from '../config/logger'
-import { responseService } from '../service'
+import {
+  ResponseService,
+  UserService,
+  CognitoService,
+  RoleService,
+  AddressService,
+  EmailService,
+  CryptoService
+} from '../service'
+
+import { setCreatedByUser, setUpdatedByUser } from './../service/util';
 import {
   defaultStatusCode,
   defaultMessage,
-  cognitoUserCreation,
-  changePasswordRequest,
-  resetPasswordRequest
+  cognitoUserCreation
 } from '../constant/constant'
 
 class UserController {
   constructor () {
-    const arg = cognito
-    AWS.config.update({
-      accessKeyId: arg.accessKeyId,
-      secretAccessKey: arg.secretAccessKey,
-      region: arg.poolRegion
-    })
-
-    this.cognitoClient = new AWS.CognitoIdentityServiceProvider({
-      apiVersion: arg.apiVersion,
-      region: arg.poolRegion
-    })
+    this.addressService = new AddressService()
+    this.cognitoService = new CognitoService()
+    this.roleService = new RoleService()
+    this.userService = new UserService()
+    this.responseService = new ResponseService()
+    this.emailService = new EmailService()
+    this.cryptoService = new CryptoService()
   }
 
   async authenticate (req, res) {
+    const { email, password } = req.body
     try {
       logger.info('Authenticating user')
-      const { username, password } = req.body
-      if (!(username || password)) {
-        return responseService.validationError(res, defaultMessage.VALIDATION_ERROR)
+
+      if (!(email && password)) {
+        return this.responseService.validationError(res, new Error(defaultMessage.VALIDATION_ERROR))
       }
-      const params = {
-        UserPoolId: cognito.userPoolId,
-        AuthFlow: defaultMessage.ADMIN_NO_SRP_AUTH,
-        ClientId: cognito.appClientId,
-        AuthParameters: {
-          USERNAME: username,
-          PASSWORD: password
-        }
+      const data = await this.cognitoService.login(email, password)
+      const userInfo = await this.userService.getUserByEmail(email)
+      await this.cognitoService.resetFailAttempts(userInfo)
+      const rawData = {
+        accessToken: data.AuthenticationResult.AccessToken,
+        userId: userInfo.userId
       }
-      const result = await promisify(this.cognitoClient.adminInitiateAuth.bind(this.cognitoClient, params))()
-      logger.info(defaultMessage.SUCCESS)
-      return responseService.onSuccess(res, defaultMessage.SUCCESS, result)
+      const encryptedToken = this.cryptoService.encrypt(rawData)
+      logger.info('user authenticated successfully', data)
+      return this.responseService.onSuccess(res, 'user authenticated successfully', {
+        accessToken: encryptedToken
+      })
     } catch (error) {
       logger.error(error, defaultMessage.NOT_AUTHORIZED)
-      if (error.name === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
-        return responseService.notAuthorized(res, defaultMessage.NOT_AUTHORIZED, error)
-      } else {
-        return responseService.onError(res, defaultMessage.INTERNAL_SERVER_ERROR, error)
+      await this.cognitoService.updateFailAttempts(email)
+      if (error.code === defaultMessage.NOT_AUTHORIZED_EXCEPTION) {
+        return this.responseService.notAuthorized(res, error)
       }
+      return this.responseService.onError(res, error)
     }
   }
 
   async register (req, res, next) {
     try {
       logger.info('User registration')
-      const { body: { name, email, password } } = req
-      const passwordParams = {
-        Password: password,
-        Permanent: true,
-        Username: name,
-        UserPoolId: cognito.userPoolId
+      const { body: { email, password } } = req
+      if (!(email && password)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const params = {
-        UserPoolId: cognito.userPoolId,
-        Username: name,
-        ForceAliasCreation: true,
-        MessageAction: 'SUPPRESS',
-        DesiredDeliveryMediums: ['EMAIL'],
-        TemporaryPassword: password,
-        UserAttributes: [
-          {
-            Name: 'email',
-            Value: email
-          }
-        ]
-      }
-      const userData = await promisify(this.cognitoClient.adminCreateUser.bind(this.cognitoClient, params))()
-      logger.info(cognitoUserCreation.SUCCESS)
-      await this.adminSetUserPassword(passwordParams)
-      logger.info('Admin setting user email verified as true')
-      const param = { UserPoolId: cognito.userPoolId, Username: name, UserAttributes: [{ Name: 'email_verified', Value: 'true' }] }
-      await promisify(this.cognitoClient.adminUpdateUserAttributes.bind(this.cognitoClient, param))()
-      logger.info('Admin setting user email verified as true was successfull')
-      responseService.onSuccess(res, cognitoUserCreation.SUCCESS, userData, defaultStatusCode.RESOURCE_CREATED)
+      await this.cognitoService.createUser(email, password)
+      const updatedUser = await this.userService.updateUser({
+        email,
+        userStatus: 'registered',
+        registeredAt: new Date()
+      })
+      this.responseService.onSuccess(res, cognitoUserCreation.SUCCESS, updatedUser, defaultStatusCode.RESOURCE_CREATED)
     } catch (error) {
       logger.error(error, cognitoUserCreation.ERROR)
       if (error.code === defaultMessage.USERNAME_EXIST_EXCEPTION) {
-        responseService.conflict(res, cognitoUserCreation.CONFLICT, error)
+        this.responseService.conflict(res, error)
       } else {
-        responseService.onError(res, cognitoUserCreation.ERROR, error)
+        this.responseService.onError(res, error)
       }
     }
   }
@@ -103,73 +89,181 @@ class UserController {
   async changePassword (req, res) {
     try {
       logger.info('Requesting for change of Password')
-      const { oldPassword, newPassword } = req.body
+      const { oldPassword, password, confirmPassword } = req.body
       const { authorization } = req.headers
-      const params = {
-        AccessToken: authorization,
-        PreviousPassword: oldPassword,
-        ProposedPassword: newPassword
+      if (!(oldPassword && password && authorization)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const data = await promisify(this.cognitoClient.changePassword.bind(this.cognitoClient, params))()
-      logger.info(changePasswordRequest.SUCCESS)
-      responseService.onSuccess(res, changePasswordRequest.SUCCESS, data, defaultStatusCode.SUCCESS)
+      if (password !== confirmPassword) {
+        return this.responseService.validationError(res, new Error('PASSWORD_DO_NOT_MATCH'))
+      }
+      await this.cognitoService.changePassword(oldPassword, password, authorization)
+      logger.info('Change Password Request was successful')
+      this.responseService.onSuccess(res, 'Change Password Request was successful')
     } catch (error) {
-      logger.error(error, changePasswordRequest.ERROR)
-      responseService.onError(res, cognitoUserCreation.ERROR, error)
+      logger.error(error, 'Error while changing password')
+      this.responseService.onError(res, error)
     }
   }
 
   async forgotPassword (req, res) {
     try {
       logger.info('Requesting for resetting the password')
-      const { username } = req.body
-      const { appClientId } = cognito
-      const params = {
-        ClientId: appClientId,
-        Username: username
+      const { email } = req.body
+      if (!email) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-      const data = await promisify(this.cognitoClient.forgotPassword.bind(this.cognitoClient, params))()
-      logger.info(resetPasswordRequest.SUCCESS)
-      return responseService.onSuccess(res, resetPasswordRequest.SUCCESS, data)
+      await this.cognitoService.forgotPassword(email)
+      logger.info('Check your email to reset the password')
+      return this.responseService.onSuccess(res, 'Check your email to reset the password')
     } catch (error) {
-      logger.error(error, resetPasswordRequest.ERROR)
-      return responseService.onError(res, resetPasswordRequest.ERROR, error)
+      logger.error(error, 'Error while request for forgot password')
+      return this.responseService.onError(res, error, 'Error while request for forgot password')
     }
   }
 
-  adminSetUserPassword (userInfo) {
-    return new Promise(async (resolve, reject) => {
-      try {
-        logger.info('Admin set password for user')
-        const response = await promisify(this.cognitoClient.adminSetUserPassword.bind(this.cognitoClient, userInfo))()
-        logger.info(logger.info('Admin setting user password was successful'))
-        resolve(response)
-      } catch (error) {
-        logger.error(error, resetPasswordRequest.ERROR)
-        reject(error)
+  async resetPassword (req, res) {
+    try {
+      logger.info('Requesting for reset of Password')
+      const { email, password, confirmationCode } = req.body
+      if (!(email && password && confirmationCode)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
-    })
+      await this.cognitoService.resetPassword(email, password, confirmationCode)
+      logger.info('Password resert was successfull')
+      this.responseService.onSuccess(res, 'Password resert was successfull')
+    } catch (error) {
+      logger.error(error, 'Error while resetting password')
+      this.responseService.onError(res, error, 'Error while resetting password')
+    }
   }
 
-  async validateToken (req, res, next) {
+  async getUser (req, res) {
     try {
-      logger.info('Into verifying user...')
-      const { authorization } = req.headers
-      const params = {
-        authorization
-      }
-      const user = await promisify(this.cognitoClient.getUser.bind(this.cognitoClient, params))()
-      if (!user) {
-        const error = new Error(defaultMessage.NOT_AUTHORIZED)
-        logger.error(error, defaultMessage.NOT_AUTHORIZED)
-        responseService.NOT_AUTHORIZED(res, defaultMessage.NOT_AUTHORIZED, defaultStatusCode.NOT_AUTHORIZED)
-      }
-      logger.info('Successfully verified user...')
-      next()
+      logger.info('Getting user by Email')
+      const { id } = req.params
+      const data = await this.userService.getUserById(id)
+      logger.info('Successfully fetch user data')
+      this.responseService.onSuccess(res, defaultMessage.SUCCESS, data)
     } catch (error) {
-      logger.error(error, defaultMessage.TOKEN_VALIDATION_ERROR)
-      next(error)
+      logger.error(error, 'Error while fetching user data')
+      this.responseService.onError(res, error)
+    }
+  }
+
+  async updateUser (req, res) {
+    try {
+      logger.info('Updating user data')
+      const user = req.body
+      const id = req.params
+      if (!(user)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
+      }
+      const userInfo = await this.userService.getUserById(id)
+      if (!userInfo) {
+        logger.error(defaultMessage.NOT_FOUND)
+        return this.responseService.NOT_FOUND(res, defaultMessage.NOT_FOUND)
+      }
+      const data = await this.userService.updateUser(user)
+      logger.info('Successfully updated user data')
+      this.responseService.onSuccess(res, 'Successfully updated user data', data)
+    } catch (error) {
+      logger.error(error, 'Error while updating user data')
+      this.responseService.onError(res, error)
+    }
+  }
+
+  async getUserList (req, res) {
+    try {
+      logger.info('Getting user list')
+      const data = await this.userService.getUserList()
+      logger.info('Successfully fetch user list')
+      this.responseService.onSuccess(res, 'Successfully fetch user list', data)
+    } catch (error) {
+      logger.error(error, 'Error while fetching user list')
+      this.responseService.onError(res, error)
+    }
+  }
+
+  async inviteUser (req, res) {
+    try {
+      logger.info('Into invite user')
+      const { body } = req
+      const hash = crypto.createHmac('sha256', secret)
+        .update(JSON.stringify(body))
+        .digest('hex')
+      // Todo:: validate the req body
+      let user = body
+      if (!(user)) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
+      }
+      user = {
+        ...user,
+        tokenValue: hash,
+        userStatus: 'invited'
+      }
+
+      const userInfo = await this.userService.getUserByEmail(user.email)
+      if (userInfo) {
+        return this.responseService.validationError(res,
+          new Error(defaultMessage.USER_ALREADY_EXIST))
+      }
+      user = setCreatedByUser(user, req.user)
+      // Todo: Assign address nick name based on the role assigned
+      const newUser = await this.userService.createUser(user)
+      // save the address
+      // assign the newly created address to the user
+      let address = body
+      address.userId = newUser.userId
+      address = setCreatedByUser(address, req.user)
+      await this.addressService.createAddress(address)
+      // read the role type for frontend and validate via enum
+      // Todo :: Bring this role id from frontend
+      const role = await this.roleService.getRole(1)
+      // role = setCreatedByUser(role, req.user)
+      console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)
+      await newUser.setRoles(role)
+      // await newUser.setAddresses(newAddress)
+      this.emailService.sendMail({
+        to: [newUser.email],
+        subject: 'GEP Invite',
+        message: `http://${host}:${port}/auth/signup/${hash}`
+      })
+      // Todo:: need to send email
+      logger.info('sucessfully created the user')
+      this.responseService.onSuccess(res, 'user invited successfully')
+    } catch (error) {
+      logger.info('error creating the user', error)
+      this.responseService.onError(res, error)
+    }
+  }
+
+  async getUserByToken (req, res) {
+    try {
+      const { inviteToken } = req.params
+      // checking if the token received belongs to a valid user
+      const user = await this.userService.getUserByInviteToken(inviteToken)
+      let error
+      if (!user) {
+        error = new Error('INVALID_TOKEN')
+      }
+      // TODO: please add a check for the invite token expiry
+      // checking if the validation above was cleared
+      if (error) {
+        return this.responseService.validationError(res, error)
+      }
+      logger.info('Successfully fetched user detail by invite token')
+      this.responseService.onSuccess(res, null, user)
+    } catch (error) {
+      logger.error('Error while fetching user by invite token ', error)
+      this.responseService.onError(res, error)
     }
   }
 }
+
 module.exports = UserController
