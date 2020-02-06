@@ -10,4 +10,7 @@ messageRouter
   .put('/', validateToken, messageController.updateMessage.bind(messageController))
   .get('/:id/count', validateToken, messageController.getMessageCount.bind(messageController))
 
+  .post('/', validateToken, messageController.addConversation.bind(messageController))
+  .get('/:testRequestId', validateToken, messageController.getConversationList.bind(messageController))
+
 module.exports = messageRouter

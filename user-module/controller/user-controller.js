@@ -181,7 +181,8 @@ class UserController {
     }
   }
 
-  /* async inviteUser (req, res) {
+  /* moved to invitation controller
+    async inviteUser (req, res) {
     try {
       logger.info('Into invite user')
       const { body } = req
