@@ -12,7 +12,7 @@ export const Address = sequelize.define('Address', {
   },
   addressNickname: {
     type: Sequelize.STRING,
-    defaultValue: 'home'
+    defaultValue: 'HOME'
   },
   addressLine1: {
     type: Sequelize.STRING

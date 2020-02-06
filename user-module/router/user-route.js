@@ -13,8 +13,6 @@ userRouter
   .post('/', userController.register.bind(userController))
 
   .post('/change-password', validateToken, userController.changePassword.bind(userController))
-  .post('/invite', validateToken, userController.inviteUser.bind(userController))
-
   .post('/forgot-password', userController.forgotPassword.bind(userController))
   .post('/reset-password', userController.resetPassword.bind(userController))
   .get('/token/:inviteToken', userController.getUserByToken.bind(userController))

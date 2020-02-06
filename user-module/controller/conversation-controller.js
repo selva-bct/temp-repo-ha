@@ -1,11 +1,11 @@
 import { logger } from '../config/logger'
-import { ResponseService, ConversationService } from '../service'
+import { ResponseService } from '../service'
 import { defaultMessage } from '../constant/constant'
+import { Conversation } from '../models/conversation'
 
 class ConversationController {
   constructor () {
     this.responseService = new ResponseService()
-    this.conversationService = new ConversationService()
   }
 
   async addConversation (req, res) {
@@ -17,7 +17,7 @@ class ConversationController {
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
       console.log('conversation --->', conversation)
-      const data = await this.conversationService.addConversation(conversation)
+      const data = await Conversation.create(conversation)
       logger.info('Created conversation successfully')
       this.responseService.onSuccess(res, 'Created conversation successfully', data)
     } catch (error) {
@@ -30,7 +30,7 @@ class ConversationController {
     try {
       logger.info('Getting conversation list')
       const { userId, testRequestId } = req.params
-      const data = await this.conversationService.getConversationList(userId, testRequestId)
+      const data = await Conversation.findAll({ where: { testRequestId: testRequestId, 'members->userId': userId } })
       logger.info('Successfully fetched conversation')
       this.responseService.onSuccess(res, 'Successfully fetched conversation', data)
     } catch (error) {

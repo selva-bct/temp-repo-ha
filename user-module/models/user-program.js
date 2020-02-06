@@ -1,23 +1,20 @@
 import Sequelize from 'sequelize'
-import sequelize from './../config/db-conection'
+import sequelize from '../config/db-conection'
 
-export const Contact = sequelize.define('Contact', {
-  userContactId: {
+export const UserProgram = sequelize.define('UserProgram', {
+  programUserId: {
     type: Sequelize.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
+  programId: {
+    type: Sequelize.INTEGER
+  },
   userId: {
-    type: Sequelize.INTEGER
-
+    type: Sequelize.JSON
   },
-  contactNickname: {
+  participationStatus: {
     type: Sequelize.STRING
-
-  },
-  phoneNumber: {
-    type: Sequelize.INTEGER
-
   },
   createdBy: {
     type: Sequelize.INTEGER
@@ -36,5 +33,5 @@ export const Contact = sequelize.define('Contact', {
 }, {
   timestamps: true,
   underscored: true,
-  tableName: 'ghe_contact'
+  tableName: 'ghe_user_program'
 })

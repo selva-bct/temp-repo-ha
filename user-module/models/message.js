@@ -18,7 +18,8 @@ export const Message = sequelize.define('Message', {
     type: Sequelize.STRING
   },
   msgAt: {
-    type: Sequelize.DATE
+    type: Sequelize.DATE,
+    defaultValue: new Date()
   },
   viewedFlag: {
     type: Sequelize.INTEGER,

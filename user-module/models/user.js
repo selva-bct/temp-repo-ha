@@ -1,6 +1,6 @@
 import Sequelize from 'sequelize'
 import sequelize from './../config/db-conection'
-import { Role } from './role'
+import { UserRole } from './user-role'
 import { Address } from './address'
 import { Contact } from './contact'
 
@@ -76,11 +76,13 @@ export const User = sequelize.define('User', {
   ]
 })
 
-Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'roleId' })
-User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'userId' })
+// Role.belongsToMany(User, { through: 'ghe_user_role', foreignKey: 'roleId' })
+// User.belongsToMany(Role, { through: 'ghe_user_role', foreignKey: 'userId' })
+
+User.hasMany(UserRole, { foreignKey: 'userId' })
 
 User.hasMany(Address, { foreignKey: 'userId' })
-User.hasMany(Contact)
+User.hasMany(Contact, { foreignKey: 'userId' })
 
 // // To insert table test data
 // sequelize.sync()

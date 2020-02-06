@@ -1,11 +1,10 @@
 import connection from '../config/db-conection'
 import { logger } from '../config/logger'
-import { Role } from '../models/role'
+import { UserRole } from '../models/user-role'
 import { Address } from '../models/address'
 
 export class UserService {
   constructor () { }
-
   createUser (user) {
     return new Promise(async (resolve, reject) => {
       try {
@@ -38,7 +37,7 @@ export class UserService {
     try {
       return await connection.models.User.findAll({
         include: [{
-          model: Role
+          model: UserRole
         },
         {
           model: Address
@@ -75,7 +74,7 @@ export class UserService {
       return await connection.models.User.findOne({
         where: { userId: Number(id) },
         include: [{
-          model: Role
+          model: UserRole
         },
         {
           model: Address

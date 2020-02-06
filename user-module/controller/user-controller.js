@@ -1,19 +1,13 @@
-import crypto from 'crypto'
-import { secret, host, port } from 'config'
-
-// internal package
 import { logger } from '../config/logger'
 import {
   ResponseService,
   UserService,
   CognitoService,
-  RoleService,
-  AddressService,
   EmailService,
   CryptoService
 } from '../service'
 
-import { setCreatedByUser } from './../service/util'
+import { setCreatedBy } from './../service/util'
 import {
   defaultStatusCode,
   defaultMessage,
@@ -22,9 +16,7 @@ import {
 
 class UserController {
   constructor () {
-    this.addressService = new AddressService()
     this.cognitoService = new CognitoService()
-    this.roleService = new RoleService()
     this.userService = new UserService()
     this.responseService = new ResponseService()
     this.emailService = new EmailService()
@@ -189,19 +181,18 @@ class UserController {
     }
   }
 
-  async inviteUser (req, res) {
+  /* async inviteUser (req, res) {
     try {
       logger.info('Into invite user')
       const { body } = req
-      const hash = crypto.createHmac('sha256', secret)
-        .update(JSON.stringify(body))
-        .digest('hex')
-      // Todo:: validate the req body
       let user = body
       if (!(user)) {
         return this.responseService.validationError(res,
           new Error(defaultMessage.MANDATORY_FIELDS_MISSING))
       }
+      const hash = crypto.createHmac('sha256', secret)
+        .update(JSON.stringify(body))
+        .digest('hex')
       user = {
         ...user,
         tokenValue: hash,
@@ -213,22 +204,25 @@ class UserController {
         return this.responseService.validationError(res,
           new Error(defaultMessage.USER_ALREADY_EXIST))
       }
-      user = setCreatedByUser(user, req.user)
-      // Todo: Assign address nick name based on the role assigned
+      user = setCreatedBy(user, req.user)
       const newUser = await this.userService.createUser(user)
       // save the address
       // assign the newly created address to the user
-      let address = body
+      let address = user.address
       address.userId = newUser.userId
-      address = setCreatedByUser(address, req.user)
-      await this.addressService.createAddress(address)
-      // read the role type for frontend and validate via enum
-      // Todo :: Bring this role id from frontend
-      const role = await this.roleService.getRole(1)
-      // role = setCreatedByUser(role, req.user)
+      console.log('newUser.userId --', newUser.userId)
+      console.log('address.userId --', address.userId)
+      address = setCreatedBy(address, user.address)
+      console.log('address--->', address)
+      await Address.create(address)
+      let role = user.role
+      role.userId = newUser.userId
+      role = setCreatedBy(role, user.role)
+      console.log('role====>', role)
+      // inserting user role record
+      await connection.models.UserRole.create(role)
+
       console.log('Email Invite link  ::: ', `http://localhost:3000/auth/signup/${hash}`)
-      await newUser.setRoles(role)
-      // await newUser.setAddresses(newAddress)
       this.emailService.sendMail({
         to: [newUser.email],
         subject: 'GEP Invite',
@@ -241,7 +235,7 @@ class UserController {
       logger.info('error creating the user', error)
       this.responseService.onError(res, error)
     }
-  }
+  } */
 
   async getUserByToken (req, res) {
     try {
